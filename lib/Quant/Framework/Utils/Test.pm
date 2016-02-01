@@ -2,18 +2,38 @@ package Quant::Framework::Utils::Test;
 
 =head1 NAME
 
-BOM::Test::Data::Utility::UnitTestCouchDB
+Quant::Framework::Utils::Test
 
 =head1 DESCRIPTION
 
-To be used by an RMG unit test. Changes the names of our CouchDB databases
-for the duration of the test run, so that data added and modified by
-the test doesn't clash with data being used by other code running on the
-server.
+This module is used when testing Quant::Framework modules to create new documents.
+A set of pre-defined templates are provided which can be used to create test documents.
+Also it is possible to change some/all of the test document by passing corresponding 
+key/values to create_doc.
 
 =head1 SYNOPSIS
 
-  use BOM::Test::Data::Utility::UnitTestCouchDB qw(:init);
+  use Quant::Framework::Utils::Test;
+
+  #using default values from test data file
+  Quant::Framework::Utils::Test::create_doc("corporate_actions");
+
+  #changing some of values in the test data file
+  Quant::Framework::Utils::Test::create_doc("corporate_actions",
+    {   symbol              => 'ABCD',
+        chronicle_reader    => $reader,
+        chronicle_writer    => $writer,
+        actions             => {
+            "62799500" => {
+                "monitor_date" => "2014-02-07T06:00:07Z",
+                "type" => "ACQUIS",
+                "monitor" => 1,
+                "description" =>  "Acquisition",
+                "effective_date" =>  "15-Jul-14",
+                "flag" => "N"
+            },
+        }
+    });
 
 =cut
 
