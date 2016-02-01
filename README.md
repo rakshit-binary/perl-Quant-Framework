@@ -1,19 +1,21 @@
 # perl-Quant-Framework
 A framework of objects upon which to build Financial Quantitative Analysis code
 
-This framework contains modules for different market data that will be needed to price a derivative contract. 
+This framework contains modules for different market data that will be needed to price a derivative contract. These market-data modules will need an instance of `Data::Chronicle::Reader` to read data from storage or `Data::Chronicle::Writer` to write data to storage.
 
 Currently below modules are defined:
 
-- Quant::Framework::CorporateAction:
-Represents the corporate actions data of an underlying from database. To read actions for a company:
+- **Quant::Framework::CorporateAction**:
+Represents the corporate actions data of an underlying from database. 
+
+To read actions for a company:
 ```
 my $corp = Quant::Framework::CorporateAction->new(symbol => $symbol,
             chronicle_reader => $reader);
 my $actions = $corp->actions;
-
+```
 To save actions for a company:
-
+```
 my $corp = Quant::Framework::CorporateAction
         ->new(symbol => $symbol, 
             chronicle_writer => $writer,
