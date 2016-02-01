@@ -5,7 +5,7 @@ This framework contains modules for different market data that will be needed to
 
 Currently below modules are defined:
 
-- Quant::Framework::CorporateAction:
+- **Quant::Framework::CorporateAction**:
 Represents the corporate actions data of an underlying from database. To read actions for a company:
 ```
 my $corp = Quant::Framework::CorporateAction->new(symbol => $symbol,
