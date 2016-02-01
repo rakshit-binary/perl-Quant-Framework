@@ -1,7 +1,7 @@
 # perl-Quant-Framework
 A framework of objects upon which to build Financial Quantitative Analysis code
 
-This framework contains modules for different market data that will be needed to price a derivative contract. 
+This framework contains modules for different market data that will be needed to price a derivative contract. These market-data modules will need an instance of `Data::Chronicle::Reader` to read data from storage or `Data::Chronicle::Writer` to write data to storage.
 
 Currently below modules are defined:
 
