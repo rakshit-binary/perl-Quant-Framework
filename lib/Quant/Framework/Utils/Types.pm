@@ -6,8 +6,8 @@ use namespace::autoclean;
 use MooseX::Types::Moose qw(Int Num Str);
 use Moose::Util::TypeConstraints;
 
-subtype 'bom_date_object', as 'Date::Utility';
-coerce 'bom_date_object', from 'Str', via { Date::Utility->new($_) };
+subtype 'qf_date_object', as 'Date::Utility';
+coerce 'qf_date_object', from 'Str', via { Date::Utility->new($_) };
 
 =head2 bom_timestamp
 
@@ -17,7 +17,7 @@ bom_timestamp can be coerced from C<Date::Utility>
 
 =cut
 
-subtype 'bom_timestamp', as Str, where {
+subtype 'qf_timestamp', as Str, where {
     if (/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(Z|GMT|UTC)?$/) {
         my $date = try {
             DateTime->new(
@@ -38,4 +38,4 @@ subtype 'bom_timestamp', as Str, where {
     "Invalid timestamp $_, please use YYYY-MM-DDTHH:MM:SSZ format";
 };
 
-coerce 'bom_timestamp', from 'bom_date_object', via { $_->datetime_iso8601 };
+coerce 'qf_timestamp', from 'qf_date_object', via { $_->datetime_iso8601 };

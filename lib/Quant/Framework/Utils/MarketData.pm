@@ -5,7 +5,7 @@ use Quant::Framework::Utils::Types;
 
 has recorded_date => (
     is         => 'ro',
-    isa        => 'bom_date_object',
+    isa        => 'qf_date_object',
     coerce     => 1,
     lazy_build => 1,
 );
