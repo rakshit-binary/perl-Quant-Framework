@@ -1,0 +1,18 @@
+language: perl
+perl:
+    - "5.20"
+    - "5.18"
+    - "5.16"
+    - "5.14"
+before_install:
+    - "cpanm --installdeps ."
+    - "cpanm Moose"
+    - "cpanm Date::Utility" 
+    - "cpanm Data::Chronicle::Reader"
+    - "cpanm Data::Chronicle::Writer"
+    - "cpanm Data::Chronicle::Mock"
+    - "cpanm YAML::XS"
+    - "cpanm File::ShareDir"
+    - "cpanm Date::Utility" 
+script:
+  perl Makefile.PL && make test
