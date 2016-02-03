@@ -53,13 +53,13 @@ use Data::Chronicle::Mock;
     Create a new document in the test database
 
     params:
-    $yaml_couch_db  => The name of the entity in the YAML file (eg. promo_code)
+    $yaml_db        => The name of the entity in the YAML file (eg. promo_code)
     $data_mod       => hasref of modifictions required to the data (optional)
 
 =cut
 
 sub create_doc {
-    my ($yaml_couch_db, $data_mod) = @_;
+    my ($yaml_db, $data_mod) = @_;
 
     my $save = 1;
     if (exists $data_mod->{save}) {
@@ -69,17 +69,17 @@ sub create_doc {
     # get data to insert
     state $fixture = LoadFile(File::ShareDir::dist_file('Quant-Framework', 'test_data.yml'));
 
-    my $data    = $fixture->{$yaml_couch_db}{data};
+    my $data    = $fixture->{$yaml_db}{data};
 
-    die "Invalid yaml db name: $yaml_couch_db" if not defined $data;
+    die "Invalid yaml db name: $yaml_db" if not defined $data;
 
     # modify data?
     for (keys %$data_mod) {
         $data->{$_} = $data_mod->{$_};
     }
 
-    # use class to create the Couch doc
-    my $class_name = $fixture->{$yaml_couch_db}{class_name};
+    # use class to create the document
+    my $class_name = $fixture->{$yaml_db}{class_name};
     my $obj        = $class_name->new($data);
 
     if ($save) {

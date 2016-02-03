@@ -33,7 +33,7 @@ To save actions for a company:
 =cut
 
 use Moose;
-extends 'Quant::Framework::Utils::MarketData';    #we keep this as its not related to CouchDB
+extends 'Quant::Framework::Utils::MarketData';    
 
 =head1 ATTRIBUTES
 
