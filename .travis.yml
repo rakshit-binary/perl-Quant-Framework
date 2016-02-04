@@ -13,6 +13,7 @@ before_install:
     - "cpanm Data::Chronicle::Mock"
     - "cpanm YAML::XS"
     - "cpanm File::ShareDir"
+    - "cpanm Test::Manifest"
     - "cpanm Date::Utility" 
 script:
   perl Makefile.PL && RELEASE_TESTING=1 make test
