@@ -1,5 +1,15 @@
 package Quant::Framework::Utils::MarketData;
 
+=head1 NAME
+
+Quant::Framework::Utils::MarketData - Base class for market-data
+
+=head1 SYNOPSYS
+
+
+=head1 DESCRIPTION
+
+=cut
 use Moose;
 use Quant::Framework::Utils::Types;
 

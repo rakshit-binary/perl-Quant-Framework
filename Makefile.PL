@@ -16,7 +16,6 @@ WriteMakefile(
     AUTHOR           => q{Binary.com <support@binary.com>},
     VERSION_FROM     => 'lib/Quant/Framework.pm',
     ABSTRACT_FROM    => 'lib/Quant/Framework.pm',
-    LICENSE          => 'artistic_2',
     PL_FILES         => {},
     MIN_PERL_VERSION => 5.006,
     CONFIGURE_REQUIRES => {
@@ -29,6 +28,7 @@ WriteMakefile(
         'Test::More' => 0,
         'Test::Exception' => 0,
         'Test::NoWarnings' => 0,
+        'Test::CheckManifest' => 1.29,
         'Date::Utility' => 0,
         'Data::Chronicle::Writer' => 0,
         'Data::Chronicle::Reader' => 0,

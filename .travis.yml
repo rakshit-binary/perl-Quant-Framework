@@ -15,4 +15,4 @@ before_install:
     - "cpanm File::ShareDir"
     - "cpanm Date::Utility" 
 script:
-  perl Makefile.PL && make test
+  perl Makefile.PL && RELEASE_TESTING=1 make test
