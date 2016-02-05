@@ -139,6 +139,12 @@ sub _build_document {
     return $document;
 }
 
+=head2 save
+
+This function saves current data for the company's symbol into Chronicle storage.
+
+=cut
+
 sub save {
     my $self = shift;
 

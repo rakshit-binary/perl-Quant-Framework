@@ -2,4 +2,5 @@ Revision history for Quant-Framework
 
 0.01    1 Feb 2016
         Initial version, contains corporate actions.
-
+0.02    4 Feb 2016
+        Fixing some unit-tests

@@ -48,7 +48,7 @@ use Data::Chronicle::Writer;
 use Data::Chronicle::Reader;
 use Data::Chronicle::Mock;
 
-=head2 create doc()
+=head2 create_doc
 
     Create a new document in the test database
 

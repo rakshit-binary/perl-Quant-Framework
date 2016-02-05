@@ -1,4 +1,4 @@
-use 5.006;
+use 5.014;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
@@ -16,9 +16,8 @@ WriteMakefile(
     AUTHOR           => q{Binary.com <support@binary.com>},
     VERSION_FROM     => 'lib/Quant/Framework.pm',
     ABSTRACT_FROM    => 'lib/Quant/Framework.pm',
-    LICENSE          => 'artistic_2',
     PL_FILES         => {},
-    MIN_PERL_VERSION => 5.006,
+    MIN_PERL_VERSION => 5.014,
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => 0,
     },
@@ -27,6 +26,7 @@ WriteMakefile(
         'YAML::XS' => 0,
         'File::ShareDir' => 0,
         'Test::More' => 0,
+        'Test::CheckManifest' => 1.29,
         'Test::Exception' => 0,
         'Test::NoWarnings' => 0,
         'Date::Utility' => 0,
