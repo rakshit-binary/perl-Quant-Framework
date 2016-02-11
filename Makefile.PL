@@ -3,6 +3,10 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
+#this module required PostgreSQL for its unit-test and mockings
+my $which_psql = `which psql`;
+exit 0 unless $which_psql;
+
 BEGIN {
     eval "use File::ShareDir::Install;";
     $@ and die $@;
@@ -31,8 +35,6 @@ WriteMakefile(
         'Test::NoWarnings' => 0,
         'Date::Utility' => 0,
         'Data::Chronicle::Writer' => 0,
-        'Data::Chronicle::Reader' => 0,
-        'Data::Chronicle::Mock' => 0,
     },
     PREREQ_PM => {
         'Moose' => 0,
