@@ -28,7 +28,7 @@ subtest 'general' => sub {
         isa_ok($corp->actions, 'HASH');
         ok !keys %{$corp->actions}, 'empty hash';
     }
-    'does not die if no actions are present on couch';
+    'does not die if no actions are present on db';
 };
 
 Quant::Framework::Utils::Test::create_doc('corporate_action',
@@ -65,8 +65,8 @@ subtest 'save new corporate actions' => sub {
         my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'FPFP',
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w);
-        my $new_actions_from_couch = $after_save_corp->actions;
-        is keys %$new_actions_from_couch, 2, 'has two actions';
+        my $new_actions_from_db = $after_save_corp->actions;
+        is keys %$new_actions_from_db, 2, 'has two actions';
     }
     'save new action';
 
@@ -122,9 +122,9 @@ subtest 'update existing corporate actions' => sub {
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w);
 
-        my $new_actions_from_couch = $after_save_corp->actions;
-        is keys %$new_actions_from_couch, 2, 'has two actions';
-        my $updated_action = $new_actions_from_couch->{$action_id};
+        my $new_actions_from_db = $after_save_corp->actions;
+        is keys %$new_actions_from_db, 2, 'has two actions';
+        my $updated_action = $new_actions_from_db->{$action_id};
         is $updated_action->{description}, 'Update to existing actions', 'description is updated';
         is $updated_action->{value}, 1.987, 'value is also updated';
     }
@@ -153,11 +153,11 @@ subtest 'cancel existing corporate actions' => sub {
         );
         ok $new_corp->save, 'saves new action';
         my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'FPFP',
-        chronicle_reader => $chronicle_r,
-        chronicle_writer => $chronicle_w);
-        my $new_actions_from_couch = $after_save_corp->actions;
-        is keys %$new_actions_from_couch, 1, 'has one actions';
-        ok !$new_actions_from_couch->{$action_id}, 'action deleted from couch';
+            chronicle_reader => $chronicle_r,
+            chronicle_writer => $chronicle_w);
+        my $new_actions_from_db = $after_save_corp->actions;
+        is keys %$new_actions_from_db, 1, 'has one actions';
+        ok !$new_actions_from_db->{$action_id}, 'action deleted from db';
     }
     'cancel existing action';
 };
@@ -179,18 +179,18 @@ subtest 'save critical actions' => sub {
             symbol        => 'FPFP',
             actions       => $new_actions,
             recorded_date => $now,
-        chronicle_reader => $chronicle_r,
-        chronicle_writer => $chronicle_w
+            chronicle_reader => $chronicle_r,
+            chronicle_writer => $chronicle_w
         );
         ok $new_corp->save, 'saves critical action';
         my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'FPFP',
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w);
 
-        my $new_actions_from_couch = $after_save_corp->actions;
-        is keys %$new_actions_from_couch, 2, 'has two actions';
-        ok $new_actions_from_couch->{$action_id}, 'critical action saved on couch';
-        ok $new_actions_from_couch->{$action_id}->{suspend_trading}, 'suspend_trading';
+        my $new_actions_from_db = $after_save_corp->actions;
+        is keys %$new_actions_from_db, 2, 'has two actions';
+        ok $new_actions_from_db->{$action_id}, 'critical action saved on db';
+        ok $new_actions_from_db->{$action_id}->{suspend_trading}, 'suspend_trading';
     }
     'save critical action';
 };
