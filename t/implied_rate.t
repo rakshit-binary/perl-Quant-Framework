@@ -18,7 +18,7 @@ my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
 
 subtest 'save implied rate' => sub {
     lives_ok {
-        is (Quant::FrameworkImpliedRate->new(symbol => 'USD-JPY',
+        is (Quant::Framework::ImpliedRate->new(symbol => 'USD-JPY',
                 chronicle_reader    => $chronicle_r,
                 chronicle_writer    => $chronicle_w,
             )->document, undef, 'document is not present');
@@ -32,7 +32,7 @@ subtest 'save implied rate' => sub {
         );
         ok $imp->save, 'save successfully';
         lives_ok {
-            my $new = Quant::FrameworkImpliedRate->new(symbol => 'USD-JPY',
+            my $new = Quant::Framework::ImpliedRate->new(symbol => 'USD-JPY',
                 chronicle_reader    => $chronicle_r,
                 chronicle_writer    => $chronicle_w,
             );
