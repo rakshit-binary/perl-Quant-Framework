@@ -2,7 +2,10 @@
 Changes
 lib/Quant/Framework.pm
 lib/Quant/Framework/CorporateAction.pm
+lib/Quant/Framework/ImpliedRate.pm
+lib/Quant/Framework/InterestRate.pm
 lib/Quant/Framework/Utils/MarketData.pm
+lib/Quant/Framework/Utils/Rates.pm
 lib/Quant/Framework/Utils/Test.pm
 lib/Quant/Framework/Utils/Types.pm
 Makefile.PL
@@ -11,6 +14,8 @@ README.md
 share/test_data.yml
 t/00-load.t
 t/corporate_actions.t
+t/implied_rate.t
+t/interest_rate.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
