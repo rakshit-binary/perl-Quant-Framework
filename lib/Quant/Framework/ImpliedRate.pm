@@ -1,4 +1,4 @@
-package BOM::MarketData::ImpliedRate;
+package Quant::Framework::ImpliedRate;
 
 use Data::Chronicle::Reader;
 use Data::Chronicle::Writer;
@@ -11,7 +11,7 @@ Quant::Framework::ImpliedRate - A module to save/load implied interest rates for
 
 This module saves/loads implied interest rate data to/from Chronicle. 
 
-my $ir_data = BOM::MarketData::ImpliedRate->new(symbol => 'USD-EUR',
+my $ir_data = Quant::Framework::ImpliedRate->new(symbol => 'USD-EUR',
         rates => { 7 => 0.5, 30 => 1.2, 90 => 2.4 });
  $ir_data->save;
 

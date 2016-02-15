@@ -5,19 +5,19 @@ use Data::Chronicle::Writer;
 
 =head1 NAME
 
-BOM::MarketData::InterestRate - A module to save/load interest rates for currencies
+Quant::Framework::InterestRate - A module to save/load interest rates for currencies
 
 =head1 DESCRIPTION
 
 This module saves/loads interest rate data to/from Chronicle. 
 
-my $ir_data = BOM::MarketData::InterestRate->new(symbol => 'USD',
+my $ir_data = Quant::Framework::InterestRate->new(symbol => 'USD',
         rates => { 7 => 0.5, 30 => 1.2, 90 => 2.4 });
  $ir_data->save;
 
 To read interest rates for a currency:
 
- my $ir_data = BOM::MarketData::InterestRate->new(symbol => 'USD');
+ my $ir_data = Quant::MarketData::InterestRate->new(symbol => 'USD');
 
  my $rates = $ir_data->rates;
 
