@@ -1,4 +1,4 @@
-package BOM::MarketData::Rates;
+package Quant::Framework::Utils::Rates;
 
 use Moose;
 extends 'Quant::Framework::Utils::MarketData';    
@@ -13,7 +13,7 @@ has rates => (
 sub _build_rates {
     my $self = shift;
 
-    die 'No rates found for ' . $self->symbol) if not defined $self->document;
+    die 'No rates found for ' . $self->symbol if not defined $self->document;
 
     my $result = $self->document->{rates};
 

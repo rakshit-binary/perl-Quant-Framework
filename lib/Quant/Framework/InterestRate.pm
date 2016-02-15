@@ -1,4 +1,4 @@
-package BOM::MarketData::InterestRate;
+package Quant::Framework::InterestRate;
 
 use Data::Chronicle::Reader;
 use Data::Chronicle::Writer;

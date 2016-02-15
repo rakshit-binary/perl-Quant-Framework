@@ -7,21 +7,35 @@ use Test::More tests => 2;
 use Test::Exception;
 use Test::NoWarnings;
 
-use BOM::Test::Data::Utility::UnitTestCouchDB qw( :init );
+use Data::Chronicle::Writer;
+use Data::Chronicle::Reader;
+use Data::Chronicle::Mock;
+use Quant::Framework::Utils::Test;
+use Quant::Framework::InterestRate;
 
-use BOM::MarketData::InterestRate;
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
 
 subtest 'save interest rate' => sub {
-    is (BOM::MarketData::InterestRate->new(symbol => 'USD')->document, undef, 'document is not present');
+    is (Quant::Framework::InterestRate->new(symbol => 'USD',
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w,
+        )->document, undef, 'document is not present');
+
+
     lives_ok {
-        my $int = BOM::MarketData::InterestRate->new(
+        my $int = Quant::Framework::InterestRate->new(
             symbol        => 'USD',
             rates         => {365 => 0},
             recorded_date => Date::Utility->new('2014-10-10'),
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w,
         );
         ok $int->save, 'save without error';
         lives_ok {
-            my $new = BOM::MarketData::InterestRate->new(symbol => 'USD');
+            my $new = Quant::Framework::InterestRate->new(symbol => 'USD',
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w);
+
             ok $new->document;
             is $new->type, 'market';
         }

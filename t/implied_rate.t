@@ -7,23 +7,35 @@ use Test::More tests => 2;
 use Test::Exception;
 use Test::NoWarnings;
 
-use BOM::Test::Data::Utility::UnitTestCouchDB qw( :init );
-
-use BOM::MarketData::ImpliedRate;
+use Data::Chronicle::Writer;
+use Data::Chronicle::Reader;
+use Data::Chronicle::Mock;
+use Quant::Framework::Utils::Test;
+use Quant::Framework::ImpliedRate;
 use Date::Utility;
+
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
 
 subtest 'save implied rate' => sub {
     lives_ok {
-        is (BOM::MarketData::ImpliedRate->new(symbol => 'USD-JPY')->document, undef, 'document is not present');
-        my $imp = BOM::MarketData::ImpliedRate->new(
+        is (Quant::FrameworkImpliedRate->new(symbol => 'USD-JPY',
+                chronicle_reader    => $chronicle_r,
+                chronicle_writer    => $chronicle_w,
+            )->document, undef, 'document is not present');
+        my $imp = Quant::FrameworkImpliedRate->new(
             symbol        => 'USD-JPY',
             rates         => {365 => 0},
             recorded_date => Date::Utility->new('2014-10-10'),
             type          => 'implied',
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w,
         );
         ok $imp->save, 'save successfully';
         lives_ok {
-            my $new = BOM::MarketData::ImpliedRate->new(symbol => 'USD-JPY');
+            my $new = Quant::FrameworkImpliedRate->new(symbol => 'USD-JPY',
+                chronicle_reader    => $chronicle_r,
+                chronicle_writer    => $chronicle_w,
+            );
             ok $new->document;
             is $new->type, 'implied';
         }
