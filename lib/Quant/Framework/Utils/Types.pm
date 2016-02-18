@@ -9,11 +9,11 @@ use Moose::Util::TypeConstraints;
 subtype 'qf_date_object', as 'Date::Utility';
 coerce 'qf_date_object', from 'Str', via { Date::Utility->new($_) };
 
-=head2 bom_timestamp
+=head2 qf_timestamp
 
 A valid ISO8601 timestamp, restricted specifically to the YYYY-MM-DDTHH:MI:SS format. Optionally, "Z", "UTC", or "GMT" can be appended to the end. No other time zones are supported.
 
-bom_timestamp can be coerced from C<Date::Utility>
+qf_timestamp can be coerced from C<Date::Utility>
 
 =cut
 
@@ -41,7 +41,7 @@ subtype 'qf_timestamp', as Str, where {
 coerce 'qf_timestamp', from 'qf_date_object', via { $_->datetime_iso8601 };
 
 my @interest_rate_types = qw(implied market);
-subtype 'bom_interest_rate_type', as Str, where {
+subtype 'qf_interest_rate_type', as Str, where {
     my $regex = '(' . join('|', @interest_rate_types) . ')';
     /^$regex$/
 }, message {
