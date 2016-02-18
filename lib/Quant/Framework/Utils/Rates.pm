@@ -20,7 +20,7 @@ sub _build_rates {
     return $result;
 }
 
-=head1 rate_for
+=head2 rate_for
 
 Returns the rate for a particular timeinyears for symbol.
 ->rate_for(7/365)

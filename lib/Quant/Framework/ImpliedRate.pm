@@ -92,6 +92,12 @@ sub _build_document {
     return $document;
 }
 
+=head2 save
+
+Save the document into Chronicle data-store
+
+=cut
+
 sub save {
     my $self = shift;
 

@@ -39,3 +39,12 @@ subtype 'qf_timestamp', as Str, where {
 };
 
 coerce 'qf_timestamp', from 'qf_date_object', via { $_->datetime_iso8601 };
+
+my @interest_rate_types = qw(implied market);
+subtype 'bom_interest_rate_type', as Str, where {
+    my $regex = '(' . join('|', @interest_rate_types) . ')';
+    /^$regex$/
+}, message {
+    "Invalid interest_rate type $_. Must be one of: " . join(', ', @interest_rate_types)
+};
+
