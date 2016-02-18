@@ -39,7 +39,7 @@ subtest 'save interest rate' => sub {
             ok $new->document;
             is $new->type, 'market';
         }
-        'successfully retrieved saved document from couch';
+        'successfully retrieved saved document from database';
     }
     'successfully save interest rates for USD';
 };
