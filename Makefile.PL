@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 BEGIN {
     eval "use File::ShareDir::Install;";
-    $@ and die $@;
+    $@ and return 0;
 }
 
 use File::ShareDir::Install;
