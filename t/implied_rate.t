@@ -22,7 +22,7 @@ subtest 'save implied rate' => sub {
                 chronicle_reader    => $chronicle_r,
                 chronicle_writer    => $chronicle_w,
             )->document, undef, 'document is not present');
-        my $imp = Quant::FrameworkImpliedRate->new(
+        my $imp = Quant::Framework::ImpliedRate->new(
             symbol        => 'USD-JPY',
             rates         => {365 => 0},
             recorded_date => Date::Utility->new('2014-10-10'),
