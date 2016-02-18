@@ -79,7 +79,10 @@ sub _build_document {
 
     if ($self->for_date and $self->for_date->datetime_iso8601 lt $document->{date}) {
         $document = $self->chronicle_reader->get_for('interest_rates', $self->symbol, $self->for_date->epoch);
+
+        #Assume empty data in case there is nothing in the database
         $document //= {};
+        $document->{date} = $self->for_date->datetime_iso8601;
     }
 
     return $document;
