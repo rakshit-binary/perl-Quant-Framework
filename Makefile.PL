@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 BEGIN {
     eval "use File::ShareDir::Install;";
-    $@ and die $@;
+    $@ and return 0;
 }
 
 use File::ShareDir::Install;
@@ -38,6 +38,7 @@ WriteMakefile(
         'Moose' => 0,
         'YAML::XS' => 0,
         'File::ShareDir' => 0,
+        'Math::Function::Interpolator', => 0,
         'Date::Utility' => 0,
         'Data::Chronicle::Writer' => 0,
         'Data::Chronicle::Reader' => 0,

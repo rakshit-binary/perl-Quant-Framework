@@ -67,7 +67,7 @@ sub create_doc {
     }
 
     # get data to insert
-    state $fixture = LoadFile(File::ShareDir::dist_file('Quant-Framework', 'test_data.yml'));
+    my $fixture = LoadFile(File::ShareDir::dist_file('Quant-Framework', 'test_data.yml'));
 
     my $data    = $fixture->{$yaml_db}{data};
 

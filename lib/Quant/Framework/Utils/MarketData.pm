@@ -13,6 +13,11 @@ Quant::Framework::Utils::MarketData - Base class for market-data
 use Moose;
 use Quant::Framework::Utils::Types;
 
+has symbol => (
+    is       => 'ro',
+    required => 1,
+);
+
 has recorded_date => (
     is         => 'ro',
     isa        => 'qf_date_object',
