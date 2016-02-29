@@ -14,6 +14,7 @@ README.md
 share/test_data.yml
 t/00-load.t
 t/corporate_actions.t
+t/corporate_actions2.t
 t/implied_rate.t
 t/interest_rate.t
 t/manifest.t

@@ -11,7 +11,7 @@ Quant::Framework::ImpliedRate - A module to save/load implied interest rates for
 
 This module saves/loads implied interest rate data to/from Chronicle. 
 
-my $ir_data = Quant::Framework::ImpliedRate->new(symbol => 'USD-EUR',
+ my $ir_data = Quant::Framework::ImpliedRate->new(symbol => 'USD-EUR',
         rates => { 7 => 0.5, 30 => 1.2, 90 => 2.4 });
  $ir_data->save;
 
@@ -78,12 +78,11 @@ sub _build_document {
 
     my $document = $self->chronicle_reader->get('interest_rates', $self->symbol);
 
-    if ($self->for_date and $self->for_date->datetime_iso8601 lt $document->{date}) {
+    if ($self->for_date and $self->for_date->epoch < Date::Utility->new($document->{date})->epoch ) {
         $document = $self->chronicle_reader->get_for('interest_rates', $self->symbol, $self->for_date->epoch);
 
         #Assume empty data in case there is nothing in the database
         $document //= {};
-        $document->{date} = $self->for_date->datetime_iso8601;
     }
 
     return $document;

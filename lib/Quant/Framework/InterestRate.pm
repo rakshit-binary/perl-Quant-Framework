@@ -11,7 +11,7 @@ Quant::Framework::InterestRate - A module to save/load interest rates for curren
 
 This module saves/loads interest rate data to/from Chronicle. 
 
-my $ir_data = Quant::Framework::InterestRate->new(symbol => 'USD',
+ my $ir_data = Quant::Framework::InterestRate->new(symbol => 'USD',
         rates => { 7 => 0.5, 30 => 1.2, 90 => 2.4 });
  $ir_data->save;
 
@@ -77,12 +77,11 @@ sub _build_document {
 
     my $document = $self->chronicle_reader->get('interest_rates', $self->symbol);
 
-    if ($self->for_date and $self->for_date->datetime_iso8601 lt $document->{date}) {
+    if ($self->for_date and $self->for_date->epoch < Date::Utility->new($document->{date})->epoch ) {
         $document = $self->chronicle_reader->get_for('interest_rates', $self->symbol, $self->for_date->epoch);
 
         #Assume empty data in case there is nothing in the database
         $document //= {};
-        $document->{date} = $self->for_date->datetime_iso8601;
     }
 
     return $document;
