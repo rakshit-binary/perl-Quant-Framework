@@ -82,7 +82,6 @@ sub _build_document {
 
         #Assume empty data in case there is nothing in the database
         $document //= {};
-        $document->{date} = $self->for_date->datetime_iso8601;
     }
 
     return $document;
