@@ -7,8 +7,7 @@ use Test::More tests => 2;
 use Test::Exception;
 use Test::NoWarnings;
 
-use Quant::Framework::Utils:Test;
-
+use Quant::Framework::Utils::Test;
 use Quant::Framework::Dividend;
 use Data::Chronicle::Writer;
 use Data::Chronicle::Reader;
@@ -26,7 +25,7 @@ subtest 'save dividend' => sub {
             )->document, undef, 'document is not present');
 
         my $dvd = Quant::Framework::Dividend->new(
-            rates           => {365          => 0},
+            rates           => {365          => 0.1},
             discrete_points => {'2014-10-10' => 0},
             recorded_date   => Date::Utility->new('2014-10-10'),
             symbol          => 'AEX',
@@ -38,7 +37,17 @@ subtest 'save dividend' => sub {
                 symbol => 'AEX',
                 chronicle_reader    => $chronicle_r,
                 chronicle_writer    => $chronicle_w
-            )->document } 'successfully retrieved saved document from couch';
+            )->document } 'successfully retrieved saved document from chronicle';
+
+        my $dv = Quant::Framework::Dividend->new(
+            symbol => 'AEX',
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w
+        )->document;
+
+        is $dv->{symbol}, "AEX", "symbol is retrieved correctly";
+        is $dv->{discrete_points}->{'2014-10-10'}, 0, "points retrieved correctly";
+        is $dv->{rates}->{365}, 0.1, "rates retrieved correctly";
     }
     'sucessfully save dividend for AEX';
 };

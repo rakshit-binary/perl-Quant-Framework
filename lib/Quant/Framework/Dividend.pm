@@ -24,7 +24,7 @@ To read dividends information for a company:
 =cut
 
 use Moose;
-extends 'Quant::Framework::Rates';
+extends 'Quant::Framework::Utils::Rates';
 
 use Data::Chronicle::Reader;
 use Data::Chronicle::Writer;
@@ -91,6 +91,12 @@ around _document_content => sub {
         date            => $self->recorded_date->datetime_iso8601,
     };
 };
+
+=head2 save
+
+Saves dividend data to the provided Chronicle storage
+
+=cut
 
 sub save {
     my $self = shift;
