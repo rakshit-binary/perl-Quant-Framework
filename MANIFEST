@@ -3,6 +3,7 @@ Changes
 lib/Quant/Framework.pm
 lib/Quant/Framework/CorporateAction.pm
 lib/Quant/Framework/Dividend.pm
+lib/Quant/Framework/Holiday.pm
 lib/Quant/Framework/ImpliedRate.pm
 lib/Quant/Framework/InterestRate.pm
 lib/Quant/Framework/Utils/MarketData.pm
@@ -17,6 +18,7 @@ t/00-load.t
 t/corporate_actions.t
 t/corporate_actions2.t
 t/dividend.t
+t/holiday.t
 t/implied_rate.t
 t/interest_rate.t
 t/manifest.t
