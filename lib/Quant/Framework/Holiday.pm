@@ -56,23 +56,24 @@ sub save {
     my $self = shift;
 
     my $cached_holidays = $self->chronicle_reader->get('holidays', 'holidays');
-    my %relevant_holidays = map { $_ => $cached_holidays->{$_} } grep { $_ >= $self->recorded_date->truncate_to_day->epoch } keys %$cached_holidays;
+    my $recorded_date = $self->recorded_date->truncate_to_day->epoch;
+    delete @{$cached_holidays} {grep { $_ < $recorded_date } keys %$cached_holidays};
     my $calendar = $self->calendar;
 
     foreach my $new_holiday (keys %$calendar) {
         my $epoch = Date::Utility->new($new_holiday)->truncate_to_day->epoch;
-        unless ($relevant_holidays{$epoch}) {
-            $relevant_holidays{$epoch} = $calendar->{$new_holiday};
+        unless ($cached_holidays->{$epoch}) {
+            $cached_holidays->{$epoch} = $calendar->{$new_holiday};
             next;
         }
         foreach my $new_holiday_desc (keys %{$calendar->{$new_holiday}}) {
             my $new_symbols = $calendar->{$new_holiday}{$new_holiday_desc};
-            my $symbols_to_save = [uniq(@{$relevant_holidays{$epoch}{$new_holiday_desc}}, @$new_symbols)];
-            $relevant_holidays{$epoch}{$new_holiday_desc} = $symbols_to_save;
+            my $symbols_to_save = [uniq(@{$cached_holidays->{$epoch}{$new_holiday_desc}}, @$new_symbols)];
+            $cached_holidays->{$epoch}{$new_holiday_desc} = $symbols_to_save;
         }
     }
 
-    return $self->chronicle_writer->set('holidays', 'holidays', \%relevant_holidays, $self->recorded_date);
+    return $self->chronicle_writer->set('holidays', 'holidays', \%{$cached_holidays}, $self->recorded_date);
 }
 
 =head2 get_holidays_for
