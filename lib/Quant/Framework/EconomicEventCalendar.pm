@@ -2,7 +2,6 @@ package Quant::Framework::EconomicEventCalendar;
 #Chornicle Economic Event
 
 use Carp qw(croak);
-use Data::Chronicle;
 use Data::Chronicle::Reader;
 use Data::Chronicle::Writer;
 
@@ -14,7 +13,7 @@ Quant::Framework::EconomicEventCalendar
 
 Represents an economic event in the financial market
  
-     my $eco = BOM::MarketData::EconomicEventCalendar->new({
+     my $eco = Quant::Framework::EconomicEventCalendar->new({
         recorded_date => $dt,
         events => $arr_events
      });
@@ -31,8 +30,23 @@ use Date::Utility;
 use List::MoreUtils qw(firstidx);
 use Quant::Framework::Utils::Types;
 
+=head2 EE
+
+Const representing `economic_events`
+
+=cut
+
 use constant EE  => 'economic_events';
+
+
+=head2 EET
+
+Const representing `economic_events_tentative`
+
+=cut
+
 use constant EET => 'economic_events_tentative';
+
 
 has document => (
     is         => 'rw',
@@ -163,6 +177,12 @@ sub save {
         $self->chronicle_writer->set(EE, EE,  $self->_document_content, $self->recorded_date));
 }
 
+=head3 C<< update >>
+
+Update economic events with the changes to tentative events
+
+=cut
+
 sub update {
     my ($self, $params) = @_;
 
@@ -187,6 +207,12 @@ sub update {
         $self->chronicle_writer->set(EE, EET, $tentative_events, $self->recorded_date),
         $self->chronicle_writer->set(EE, EE,  $existing_events,  $self->recorded_date));
 }
+
+=head3 C<< get_latest_events_for_period >>
+
+Retrieves latest economic events in the given period
+
+=cut
 
 sub get_latest_events_for_period {
     my ($self, $period) = @_;
@@ -233,6 +259,12 @@ sub get_latest_events_for_period {
     my @result = values %all_events;
     return \@result;
 }
+
+=head3 C<< get_tentative_events  >>
+
+Get tentative events from Chronicle's cache
+
+=cut
 
 sub get_tentative_events {
 
