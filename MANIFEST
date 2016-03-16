@@ -3,6 +3,7 @@ Changes
 lib/Quant/Framework.pm
 lib/Quant/Framework/CorporateAction.pm
 lib/Quant/Framework/Dividend.pm
+lib/Quant/Framework/EconomicEventCalendar.pm
 lib/Quant/Framework/Holiday.pm
 lib/Quant/Framework/ImpliedRate.pm
 lib/Quant/Framework/InterestRate.pm

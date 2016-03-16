@@ -1,14 +1,14 @@
-package BOM::MarketData::EconomicEventCalendar;
+package Quant::Framework::EconomicEventCalendar;
 #Chornicle Economic Event
 
 use Carp qw(croak);
-use BOM::System::Chronicle;
+use Data::Chronicle;
 use Data::Chronicle::Reader;
 use Data::Chronicle::Writer;
 
 =head1 NAME
 
-BOM::MarketData::EconomicEventCalendar
+Quant::Framework::EconomicEventCalendar
 
 =head1 DESCRIPTION
 
@@ -25,11 +25,11 @@ use Moose;
 use JSON;
 use ForexFactory;
 
-extends 'BOM::MarketData';
+extends 'Quant::Framework::Utils::MarketData';
 
 use Date::Utility;
 use List::MoreUtils qw(firstidx);
-use BOM::Market::Types;
+use Quant::Framework::Utils::Types;
 
 use constant EE  => 'economic_events';
 use constant EET => 'economic_events_tentative';
@@ -42,13 +42,11 @@ has document => (
 has chronicle_reader => (
     is      => 'ro',
     isa     => 'Data::Chronicle::Reader',
-    default => sub { BOM::System::Chronicle::get_chronicle_reader() },
 );
 
 has chronicle_writer => (
     is      => 'ro',
     isa     => 'Data::Chronicle::Writer',
-    default => sub { BOM::System::Chronicle::get_chronicle_writer() },
 );
 
 #this sub needs to be removed as it is no loger used.
