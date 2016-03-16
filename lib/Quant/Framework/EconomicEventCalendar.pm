@@ -252,7 +252,9 @@ sub get_latest_events_for_period {
                     . $doc_event->{impact})
                 unless defined $doc_event->{id};
 
-            $all_events{$doc_event->{id}} = $doc_event if ($doc_event->{release_date} >= $from and $doc_event->{release_date} <= $to);
+            # historical event's release date could still be string.
+            my $doc_release_epoch = Date::Utility->new($doc_event->{release_date})->epoch;
+            $all_events{$doc_event->{id}} = $doc_event if ($doc_release_epoch >= $from and $doc_release_epoch <= $to);
         }
     }
 
