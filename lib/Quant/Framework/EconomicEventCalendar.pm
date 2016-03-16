@@ -235,7 +235,7 @@ sub get_latest_events_for_period {
     }
 
     #if the requested period lies outside the current Redis data, refer to historical data
-    my $documents = $self->chronicle_reader->get_for_period(EE, EE, $from, $to);
+    my $documents = $self->chronicle_reader->get_for_period(EE, EE, $from->minus_time_interval("1d"), $to->plus_time_interval("1d"));
 
     #we use a hash-table to remove duplicate news
     my %all_events;
