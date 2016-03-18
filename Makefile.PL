@@ -45,6 +45,7 @@ WriteMakefile(
         'List::Util' => 0,
         'List::MoreUtils' => 0,
         'Carp' => 0,
+        'Digest::MD5' => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Quant-Framework-*' },

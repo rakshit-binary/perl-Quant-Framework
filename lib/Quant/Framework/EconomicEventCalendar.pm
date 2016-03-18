@@ -4,6 +4,7 @@ package Quant::Framework::EconomicEventCalendar;
 use Carp qw(croak);
 use Data::Chronicle::Reader;
 use Data::Chronicle::Writer;
+use Digest::MD5 qw(md5_hex);
 
 =head1 NAME
 
@@ -22,7 +23,6 @@ Represents an economic event in the financial market
 
 use Moose;
 use JSON;
-use ForexFactory;
 
 extends 'Quant::Framework::Utils::MarketData';
 
@@ -208,6 +208,11 @@ sub update {
         $self->chronicle_writer->set(EE, EE,  $existing_events,  $self->recorded_date));
 }
 
+sub _generate_id {
+    my $string = shift;
+    return substr(md5_hex($string), 0, 16);
+}
+
 =head3 C<< get_latest_events_for_period >>
 
 Retrieves latest economic events in the given period
@@ -246,7 +251,7 @@ sub get_latest_events_for_period {
         my $doc_events = $doc->{events};
         for my $doc_event (@{$doc_events}) {
             $doc_event->{id} =
-                ForexFactory::generate_id(Date::Utility->new($doc_event->{release_date})->truncate_to_day()->epoch
+                _generate_id(Date::Utility->new($doc_event->{release_date})->truncate_to_day()->epoch
                     . $doc_event->{event_name}
                     . $doc_event->{symbol}
                     . $doc_event->{impact})
