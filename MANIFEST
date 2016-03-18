@@ -19,9 +19,11 @@ t/00-load.t
 t/corporate_actions.t
 t/corporate_actions2.t
 t/dividend.t
+t/economic_event.t
 t/holiday.t
 t/implied_rate.t
 t/interest_rate.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
+t/tentative_events.t
