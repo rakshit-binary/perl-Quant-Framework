@@ -6,7 +6,6 @@ use warnings;
 use Test::More tests => 5;
 use Test::NoWarnings;
 use Test::Exception;
-use Test::MockModule;
 
 use Date::Utility;
 use Data::Chronicle::Writer;
