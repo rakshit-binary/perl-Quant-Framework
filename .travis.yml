@@ -16,4 +16,4 @@ before_install:
     - "cpanm Test::Manifest"
     - "cpanm Date::Utility" 
 script:
-  cat lib/Quant/Framework/EconomicEventCalendar.pm && perl Makefile.PL && RELEASE_TESTING=1 make test
+  perl Makefile.PL && RELEASE_TESTING=1 make test
