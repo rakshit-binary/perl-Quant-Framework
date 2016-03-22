@@ -79,3 +79,13 @@ holiday:
           'New Year':
             - EURONEXT
             - USD
+
+economic_events:
+  class_name: 'Quant::Framework::EconomicEventCalendar'
+  data:
+    events:
+        - impact: 1
+          event_name: 'US GDP Announcement'
+          symbol: 'USD'
+          source: 'forexfactory'
+
