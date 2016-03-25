@@ -36,8 +36,7 @@ Const representing `economic_events`
 
 =cut
 
-use constant EE  => 'economic_events';
-
+use constant EE => 'economic_events';
 
 =head2 EET
 
@@ -47,20 +46,19 @@ Const representing `economic_events_tentative`
 
 use constant EET => 'economic_events_tentative';
 
-
 has document => (
     is         => 'rw',
     lazy_build => 1,
 );
 
 has chronicle_reader => (
-    is      => 'ro',
-    isa     => 'Data::Chronicle::Reader',
+    is  => 'ro',
+    isa => 'Data::Chronicle::Reader',
 );
 
 has chronicle_writer => (
-    is      => 'ro',
-    isa     => 'Data::Chronicle::Writer',
+    is  => 'ro',
+    isa => 'Data::Chronicle::Writer',
 );
 
 #this sub needs to be removed as it is no loger used.
@@ -222,8 +220,8 @@ Retrieves latest economic events in the given period
 sub get_latest_events_for_period {
     my ($self, $period) = @_;
 
-    my $from = Date::Utility->new($period->{from})->epoch;
-    my $to   = Date::Utility->new($period->{to})->epoch;
+    my $from = Date::Utility->new($period->{from});
+    my $to   = Date::Utility->new($period->{to});
 
     #get latest events
     my $document = $self->chronicle_reader->get(EE, EE);
@@ -235,8 +233,8 @@ sub get_latest_events_for_period {
 
     #for live pricing, following condition should be satisfied
     #release date is now an epoch and not a date string.
-    if (@$events and $from >= $events->[0]->{release_date}) {
-        return [grep { $_->{release_date} >= $from and $_->{release_date} <= $to } @$events];
+    if (@$events and $from->epoch >= $events->[0]->{release_date}) {
+        return [grep { $_->{release_date} >= $from->epoch and $_->{release_date} <= $to->epoch } @$events];
     }
 
     #if the requested period lies outside the current Redis data, refer to historical data
@@ -259,7 +257,7 @@ sub get_latest_events_for_period {
 
             # historical event's release date could still be string.
             my $doc_release_epoch = Date::Utility->new($doc_event->{release_date})->epoch;
-            $all_events{$doc_event->{id}} = $doc_event if ($doc_release_epoch >= $from and $doc_release_epoch <= $to);
+            $all_events{$doc_event->{id}} = $doc_event if ($doc_release_epoch >= $from->epoch and $doc_release_epoch <= $to->epoch);
         }
     }
 
