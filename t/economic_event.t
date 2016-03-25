@@ -96,11 +96,29 @@ subtest save_event_to_chronicle => sub {
     my $from = Date::Utility->new('2015-03-18');
     my $to   = Date::Utility->new('2016-03-24');
 
-    my @hist_docs = $dm->get_latest_events_for_period({
+    my @hist_docs_case1 = $dm->get_latest_events_for_period({
         from => $from,
         to   => $to
     });
-    ok scalar @hist_docs > 0, 'document saved';
+    ok scalar @hist_docs_case1 > 0, 'document saved';
+
+    $from = Date::Utility->new('2015-02-18');
+    $to   = Date::Utility->new('2016-02-27');
+
+    my @hist_docs_case2 = $dm->get_latest_events_for_period({
+        from => $from,
+        to   => $to
+    });
+    ok scalar @hist_docs_case2 > 0, 'document saved';
+
+    $from = Date::Utility->new('2015-01-05');
+    $to   = Date::Utility->new('2016-01-27');
+
+    my @hist_docs_case3 = $dm->get_latest_events_for_period({
+        from => $from,
+        to   => $to
+    });
+    ok scalar @hist_docs_case3 > 0, 'document saved';
 
 };
 
