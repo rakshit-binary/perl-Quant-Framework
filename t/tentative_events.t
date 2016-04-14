@@ -17,7 +17,7 @@ use Quant::Framework::Utils::Test;
 my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
 
 my $tentative = {
-    'estimated_release_date' => 1457395200,
+    'estimated_release_date' => time,
     'event_name'             => 'Trade Balance',
     'id'                     => 'f4b74431c78eab54',
     'impact'                 => 5,
