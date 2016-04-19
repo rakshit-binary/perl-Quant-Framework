@@ -36,6 +36,13 @@ has chronicle_writer => (
     isa     => 'Data::Chronicle::Writer',
 );
 
+=head2 save
+
+Save given calendar into Chronicle for partial-trading (either early-close or late-open).
+This calendar will specify partial-trading dates for a number of symbols at the same time.
+
+=cut
+
 sub save {
     my $self = shift;
 
@@ -62,6 +69,13 @@ sub save {
 
     return $self->chronicle_writer->set('partial_trading', $self->type, \%relevant_dates, $self->recorded_date);
 }
+
+=head2 get_partial_trading_for
+
+Returns a hash-ref for partial-tradings of the given type for a specific symbol. 
+You can also query historical data using this function.
+
+=cut
 
 sub get_partial_trading_for {
     my ($self, $symbol, $for_date) = @_;
