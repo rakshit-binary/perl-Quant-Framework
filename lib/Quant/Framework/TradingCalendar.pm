@@ -1,8 +1,8 @@
-package BOM::Market::Exchange;
+package Quant::Framework::TradingCalendar;
 
 =head1 NAME
 
-BOM::Market::Exchange
+Quant::Framework::TradingCalendar
 
 =head1 DESCRIPTION
 

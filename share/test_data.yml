@@ -89,3 +89,7 @@ economic_events:
           symbol: 'USD'
           source: 'forexfactory'
 
+partial_trading:
+  class_name: 'Quant::Framework::PartialTrading'
+  data:
+    calendar: {}
