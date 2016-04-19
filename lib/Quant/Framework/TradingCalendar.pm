@@ -6,13 +6,14 @@ Quant::Framework::TradingCalendar
 
 =head1 DESCRIPTION
 
-Models exchanges: places where underlyings are traded, e.g. LSE.
+This module is responsible about everything related to time-based status of an exchange (whether exchange is open/closed, has holiday, is partially open, ...)
+Plus all related helper modules (trading days between two days where exchange is open, trading breaks, DST effect, open/close time, ...).
 
 =cut
 
 =head1 USAGE
 
-    my $exchange = BOM::Market::Exchange->new('LSE');
+    my $exchange = Quant::Framework::TradingCalendar->new('LSE');
 
 =cut
 
@@ -28,16 +29,16 @@ use List::Util qw(min max);
 use Memoize;
 use Carp;
 use Scalar::Util qw(looks_like_number);
+use Data::Chronicle::Reader;
+use Data::Chronicle::Writer;
 
 use Quant::Framework::Holiday;
-use BOM::MarketData::PartialTrading;
+use Quant::Framework::PartialTrading;
 use Date::Utility;
 use Memoize::HashKey::Ignore;
-use BOM::Platform::Runtime;
 use Time::Duration::Concise;
-use BOM::Platform::Context qw(localize);
-use BOM::Utility::Log4perl qw( get_logger );
 use YAML::XS qw(LoadFile);
+
 # We're going to do this from time to time.
 # I claim it's under control.
 ## no critic(TestingAndDebugging::ProhibitNoWarnings)
@@ -49,38 +50,39 @@ no warnings 'recursion';
 
 The standard symbol used to reference this exchange
 
-=head2 pretty_name
+=cut
 
-The client-friendly name
+has symbol => (
+    is  => 'ro',
+    isa => 'Str',
+);
 
-=head2 delay_amount
+=head2 chronicle_reader, chronicle_writer
 
-Amount the feed for this exchange needs to be delayed, in minutes.
+Used to work with Chronicle storage data (Holidays and Partial trading data)
 
 =cut
 
-has [qw(
-        symbol
-        pretty_name
-        offered
-        )
-    ] => (
-    is  => 'ro',
-    isa => 'Str',
-    );
-
-has [qw(
-        delay_amount
-        )
-    ] => (
+has chronicle_reader => (
     is      => 'ro',
-    isa     => 'Num',
-    default => 60,
-    );
+    isa     => 'Data::Chronicle::Reader',
+);
 
-=head2 currency
+has chronicle_writer => (
+    is      => 'ro',
+    isa     => 'Data::Chronicle::Writer',
+);
 
-Exchange's main currency.
+=head2 locale
+
+localization language (default is 'en')
+
+=cut
+
+has locale => (
+    is  => 'ro',
+    default => 'en'
+);
 
 =head2 for_date
 
@@ -88,7 +90,7 @@ for_date is to for historical search of holiday information
 
 =cut
 
-has [qw( for_date currency )] => (
+has for_date => (
     is => 'ro',
 );
 
@@ -108,8 +110,7 @@ has holidays => (
 sub _build_holidays {
     my $self = shift;
 
-    my $chronicle_reader  = BOM::System::Chronicle::get_chronicle_reader();
-    my $ref               = Quant::Framework::Holiday::get_holidays_for($chronicle_reader, $self->symbol, $self->for_date);
+    my $ref               = Quant::Framework::Holiday::get_holidays_for($self->chronicle_reader, $self->symbol, $self->for_date);
     my %exchange_holidays = map { Date::Utility->new($_)->days_since_epoch => $ref->{$_} } keys %$ref;
 
     return \%exchange_holidays;
@@ -147,7 +148,10 @@ has [qw(early_closes late_opens)] => (
 sub _build_early_closes {
     my $self = shift;
 
-    my $ref = BOM::MarketData::PartialTrading::get_partial_trading_for('early_closes', $self->symbol, $self->for_date);
+    my $ref = Quant::Framework::PartialTrading->new({
+            chronicle_reader => $self->chronicle_reader,
+            chronicle_writer => $self->chronicle_writer,
+            type             => 'early_closes'})->get_partial_trading_for($self->symbol, $self->for_date);
     my %early_closes = map { Date::Utility->new($_)->days_since_epoch => $ref->{$_} } keys %$ref;
 
     return \%early_closes;
@@ -156,7 +160,10 @@ sub _build_early_closes {
 sub _build_late_opens {
     my $self = shift;
 
-    my $ref = BOM::MarketData::PartialTrading::get_partial_trading_for('late_opens', $self->symbol, $self->for_date);
+    my $ref = Quant::Framework::PartialTrading->new({
+            chronicle_reader => $self->chronicle_reader,
+            chronicle_writer => $self->chronicle_writer,
+            type             => 'late_opens'})->get_partial_trading_for($self->symbol, $self->for_date);
     my %late_opens = map { Date::Utility->new($_)->days_since_epoch => $ref->{$_} } keys %$ref;
 
     return \%late_opens;
@@ -191,7 +198,7 @@ has trading_days => (
 
 =head2 trading_days_list
 
-List the trading day index which defined on config/files/exchanges_trading_days_aliases.yml
+List the trading day index which defined on exchanges_trading_days_aliases.yml
 
 =cut
 
@@ -202,7 +209,7 @@ has trading_days_list => (
 );
 
 {
-    my $trading_days_aliases = YAML::XS::LoadFile('/home/git/regentmarkets/bom-market/config/files/exchanges_trading_days_aliases.yml');
+    my $trading_days_aliases = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchanges_trading_days_aliases.yml');
 
     sub _build_trading_days_list {
         my $self = shift;
@@ -210,18 +217,6 @@ has trading_days_list => (
 
     }
 }
-
-=head2 display_name
-
-A name we can show to someone someday
-
-=cut
-
-has display_name => (
-    is      => 'ro',
-    lazy    => 1,
-    default => sub { return shift->symbol },
-);
 
 =head2 trading_timezone
 
@@ -233,6 +228,7 @@ This should be a string which will allow the standard DateTime modules to find t
 =head2 tenfore_trading_timezone
 
 This reflects the timezone in which tenfore thinks the exchange conducts business.
+TODO: remove tenfore_trading_timezone
 
 =cut
 
@@ -242,12 +238,14 @@ has [qw(trading_timezone tenfore_trading_timezone)] => (
 );
 
 sub BUILDARGS {
-    my ($class, $symbol, $for_date) = @_;
+    my ($class, $symbol, $for_date, $locale) = @_;
 
     croak "Exchange symbol must be specified" unless $symbol;
-    my $params_ref = LoadFile('/home/git/regentmarkets/bom-market/config/files/exchange.yml')->{$symbol};
+    #TODO: load using File::Dist from share dir
+    my $params_ref = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml')->{$symbol}
     $params_ref->{symbol} = $symbol;
     $params_ref->{for_date} = $for_date if $for_date;
+    $params_ref->{locale} = $locale if $locale;
 
     foreach my $key (keys %{$params_ref->{market_times}}) {
         foreach my $trading_segment (keys %{$params_ref->{market_times}->{$key}}) {
@@ -255,7 +253,7 @@ sub BUILDARGS {
             elsif ($trading_segment ne 'trading_breaks') {
                 $params_ref->{market_times}->{$key}->{$trading_segment} = Time::Duration::Concise::Localize->new(
                     interval => $params_ref->{market_times}->{$key}->{$trading_segment},
-                    locale   => BOM::Platform::Context::request()->language
+                    locale   => $locale,
                 );
             } else {
                 my $break_intervals = $params_ref->{market_times}->{$key}->{$trading_segment};
@@ -263,11 +261,11 @@ sub BUILDARGS {
                 foreach my $int (@$break_intervals) {
                     my $open_int = Time::Duration::Concise::Localize->new(
                         interval => $int->[0],
-                        locale   => BOM::Platform::Context::request()->language
+                        locale   => $locale,
                     );
                     my $close_int = Time::Duration::Concise::Localize->new(
                         interval => $int->[1],
-                        locale   => BOM::Platform::Context::request()->language
+                        locale   => $locale,
                     );
                     push @converted, [$open_int, $close_int];
                 }
@@ -278,17 +276,6 @@ sub BUILDARGS {
 
     return $params_ref;
 }
-
-=head2 is_OTC
-
-Is this an over the counter exchange?
-
-=cut
-
-has is_OTC => (
-    is      => 'ro',
-    default => 0,
-);
 
 =head1 METHODS
 
@@ -314,7 +301,7 @@ sub new {
 
     state %cached_objects;
 
-    my $lang = BOM::Platform::Context::request()->language;
+    my $lang = $self->locale;
     my $key = join('::', $symbol, $lang);
 
     my $ex = $cached_objects{$key};
@@ -535,7 +522,7 @@ Memoize::memoize('holiday_days_between', NORMALIZER => '_normalize_on_dates');
 
 =head1 OPEN/CLOSED QUESTIONS ETC.
 
-BOM::Market::Exchange can be questioned about various things related to opening/closing.
+Quant::Framework::TradingCalendar can be questioned about various things related to opening/closing.
 The following shows all these questions via code examples:
 
 =head2 is_open
