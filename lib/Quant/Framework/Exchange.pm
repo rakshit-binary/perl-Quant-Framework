@@ -70,6 +70,12 @@ has is_OTC => (
     default => 0,
 );
 
+=head2 BUILDARGS
+
+internal function to pre-process construction arguments
+
+=cut
+
 sub BUILDARGS {
     my ($class, $symbol) = @_;
 
