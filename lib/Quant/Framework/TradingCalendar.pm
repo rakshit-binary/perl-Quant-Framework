@@ -918,7 +918,7 @@ sub regularly_adjusts_trading_hours_on {
     my $changes;
 
     if ($when->day_of_week == 5) {
-        my $rule = localize('Fridays');
+        my $rule = 'Fridays';
         if ($self->symbol eq 'FOREX') {
             $changes = {
                 'daily_close' => {

@@ -1,8 +1,7 @@
 #!/usr/bin/perl
 
 use Test::MockTime qw( :all );
-use BOM::Test::Data::Utility::UnitTestMarketData qw( :init );
-use BOM::Test::Data::Utility::UnitTestRedis;
+use Quant::Framework::Utils::Test qw( :init );
 
 use Test::Most;
 use Test::MockModule;
@@ -13,13 +12,17 @@ use Test::MockModule;
 use JSON qw(decode_json);
 use Time::Local ();
 use YAML::XS qw(LoadFile);
+use Quant::Framework::TradingCalendar;
+use Quant::Framework::InterestRate;
+use Quant::Framework::Utils::Test;
 
 use Readonly;
 Readonly::Scalar my $HKSE_TRADE_DURATION_DAY => ((2 * 3600 + 29 * 60) + (2 * 3600 + 40 * 60));
 Readonly::Scalar my $HKSE_TRADE_DURATION_MORNING => 2 * 3600 + 29 * 60;
 Readonly::Scalar my $HKSE_TRADE_DURATION_EVENING => 2 * 3600 + 40 * 60;
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
 my $date = Date::Utility->new('2013-12-01');    # first of December 2014
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'holiday',
     {
         recorded_date => $date,
@@ -37,9 +40,11 @@ BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
                 "Easter Monday" => [qw(LSE)],
             },
         },
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'partial_trading',
     {
         recorded_date => $date,
@@ -56,8 +61,10 @@ BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
                 '18h' => ['FOREX'],
             },
         },
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'partial_trading',
     {
         recorded_date => $date,
@@ -67,41 +74,26 @@ BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
                 '2h30m' => ['HKSE'],
             },
         },
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc('currency', {symbol => $_}) for qw(AUD GBP EUR USD HKD);
 
-use BOM::Market::Exchange;
-use BOM::Market::Underlying;
+Quant::Framework::Utils::Test::create_doc('currency', {
+        symbol => $_,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
+    }) for qw(AUD GBP EUR USD HKD);
 
-my $LSE             = BOM::Market::Exchange->new('LSE', $date);
-my $FSE             = BOM::Market::Exchange->new('FSE');               # think GDAXI
-my $FOREX           = BOM::Market::Exchange->new('FOREX');
-my $RANDOM          = BOM::Market::Exchange->new('RANDOM');
-my $RANDOM_NOCTURNE = BOM::Market::Exchange->new('RANDOM_NOCTURNE');
-my $ASX             = BOM::Market::Exchange->new('ASX');
-my $NYSE            = BOM::Market::Exchange->new('NYSE');
-my $HKSE            = BOM::Market::Exchange->new('HKSE');
-my $ISE             = BOM::Market::Exchange->new('ISE');
 
-# all the exchange in the yaml
-my $exchanges = LoadFile('/home/git/regentmarkets/bom-market/config/files/exchange.yml');
-
-subtest 'exchange currency and OTC check' => sub {
-    my %undef_currency_exchanges = (
-        RANDOM          => 1,
-        FOREX           => 1,
-        RANDOM_NOCTURNE => 1
-    );
-    foreach my $exchange (keys %$exchanges) {
-        if ($undef_currency_exchanges{$exchange}) {
-            ok !$exchanges->{$exchange}->{currency}, "currency undef for $exchange";
-            ok $exchanges->{$exchange}->{is_OTC}, "is OTC for $exchange";
-        } else {
-            ok $exchanges->{$exchange}->{currency}, "currency defined for $exchange";
-            ok !$exchanges->{$exchange}->{is_OTC}, "non OTC for $exchange";
-        }
-    }
-};
+my $LSE             = Quant::Framework::TradingCalendar->new('LSE', $chronicle_r, 'EN', $date);
+my $FSE             = Quant::Framework::TradingCalendar->new('FSE', $chronicle_r);               # think GDAXI
+my $FOREX           = Quant::Framework::TradingCalendar->new('FOREX', $chronicle_r);
+my $RANDOM          = Quant::Framework::TradingCalendar->new('RANDOM', $chronicle_r);
+my $RANDOM_NOCTURNE = Quant::Framework::TradingCalendar->new('RANDOM_NOCTURNE', $chronicle_r);
+my $ASX             = Quant::Framework::TradingCalendar->new('ASX', $chronicle_r);
+my $NYSE            = Quant::Framework::TradingCalendar->new('NYSE', $chronicle_r);
+my $HKSE            = Quant::Framework::TradingCalendar->new('HKSE', $chronicle_r);
+my $ISE             = Quant::Framework::TradingCalendar->new('ISE', $chronicle_r);
 
 subtest 'holidays check' => sub {
     is $LSE->for_date->epoch, $date->epoch, 'for_date properly set in Exchange';
@@ -144,11 +136,6 @@ subtest "Holiday/Weekend weights" => sub {
     my $trade_end2  = Date::Utility->new('9-Apr-13');    # Just to avoid memoization on weighted_days_in_period
     ok $sunday->is_a_weekend, "This is a weekend";
     ok(!$LSE->has_holiday_on($sunday), 'No holiday on that sunday.');
-    my $ul_LSE = BOM::Market::Underlying->new('FTSE');
-    is $ul_LSE->exchange->symbol, $LSE->symbol, "This underlying's exchange is what we expect";
-    is $ul_LSE->closed_weight, 0.55, 'Sanity check so that our weighted math matches :-)';
-    is $ul_LSE->weighted_days_in_period($trade_start, $trade_end), 7.2,
-        'Weighted period calculated correctly: 5 trading days, plus 4 weekends/holidays';
 
     # mock
     Test::MockObject::Extends->new($LSE);
@@ -160,8 +147,6 @@ subtest "Holiday/Weekend weights" => sub {
         });
     # test
     is($LSE->weight_on($sunday), 0.0, "holiday on sunday.");
-    is $ul_LSE->weighted_days_in_period($trade_start, $trade_end2), 8.2,
-        'Weighted period calculated correctly: 6 trading days, plus 4 weekends/holidays';
 
     # unmock
     $LSE->unmock('holidays');
@@ -231,7 +216,7 @@ subtest 'Whole bunch of stuff.' => sub {
     is($LSE->seconds_since_close_at($lse_holiday_epoch), undef, 'seconds_since_close_at LSE not open today at all.');
 
     # Two session trading stuff:
-    my $HKSE = BOM::Market::Exchange->new('HKSE');
+    my $HKSE = Quant::Framework::TradingCalendar->new('HKSE');
 
     my $lunchbreak_epoch = Date::Utility->new('3-May-13 04:30:00')->epoch;
     is($HKSE->is_open_at($lunchbreak_epoch),            undef, 'HKSE closed for lunch!');
@@ -249,7 +234,7 @@ subtest 'Whole bunch of stuff.' => sub {
 
     # Australia: first Sunday of April.
     # BE CAREFUL: Au "summer" is Northern Hemisphere "winter"!
-    my $ASX        = BOM::Market::Exchange->new('ASX');
+    my $ASX        = Quant::Framework::TradingCalendar->new('ASX');
     my $late_apr_3 = Date::Utility->new('3-Apr-13 23:30:00');
     is($ASX->is_open_at($late_apr_3),                                    1,            'ASX open at 23:30 GMT a day earlier during Aussie "summer"');
     is($ASX->trading_date_for($late_apr_3)->date,                        '2013-04-04', '... and it is trading on the "next" day.');
@@ -258,7 +243,7 @@ subtest 'Whole bunch of stuff.' => sub {
     is($ASX->is_open_at(Date::Utility->new('8-Apr-13 05:30:00')->epoch), 1,     'ASX open at 5:30am GMT during Aussie "winter".');
 
     # USA: second Sunday of March.
-    my $NYSE = BOM::Market::Exchange->new('NYSE');
+    my $NYSE = Quant::Framework::TradingCalendar->new('NYSE');
     is($NYSE->is_open_at(Date::Utility->new('8-Mar-13 14:00:00')->epoch),  undef, 'NYSE not open at 2pm GMT during winter.');
     is($NYSE->is_open_at(Date::Utility->new('11-Mar-13 14:00:00')->epoch), 1,     'NYSE open at 2pm GMT during summer.');
 
@@ -529,7 +514,7 @@ subtest 'trading_date_for' => sub {
 
     note
         'This assumes that the RANDOM and RANDOM NOCTURNE remain open every day and offset by 12 hours, so we can use them to verify the implementation.';
-    my $RANDOM_NOCTURNE = BOM::Market::Exchange->new('RANDOM_NOCTURNE');
+    my $RANDOM_NOCTURNE = Quant::Framework::TradingCalendar->new('RANDOM_NOCTURNE');
     my $today           = Date::Utility->today;
 
     ok(
@@ -563,17 +548,17 @@ subtest 'trading_date_for' => sub {
 
 subtest 'trading_date_can_differ' => sub {
 
-    my $never_differs = BOM::Market::Exchange->new('NYSE');
+    my $never_differs = Quant::Framework::TradingCalendar->new('NYSE');
     ok(!$never_differs->trading_date_can_differ, $never_differs->symbol . ' never trades on a different day than the UTC calendar day.');
-    my $always_differs = BOM::Market::Exchange->new('RANDOM_NOCTURNE');
+    my $always_differs = Quant::Framework::TradingCalendar->new('RANDOM_NOCTURNE');
     ok($always_differs->trading_date_can_differ, $always_differs->symbol . ' always trades on a different day than the UTC calendar day.');
-    my $sometimes_differs = BOM::Market::Exchange->new('ASX');
+    my $sometimes_differs = Quant::Framework::TradingCalendar->new('ASX');
     ok($sometimes_differs->trading_date_can_differ, $sometimes_differs->symbol . ' sometimes trades on a different day than the UTC calendar day.');
 
 };
 
 subtest 'regular_trading_day_after' => sub {
-    my $exchange = BOM::Market::Exchange->new('FOREX');
+    my $exchange = Quant::Framework::TradingCalendar->new('FOREX');
     lives_ok {
         my $weekend     = Date::Utility->new('2014-03-29');
         my $regular_day = $exchange->regular_trading_day_after($weekend);
@@ -603,7 +588,7 @@ subtest 'get exchange settlement time' => sub {
 };
 
 subtest 'trading period' => sub {
-    my $ex           = BOM::Market::Exchange->new('HKSE');
+    my $ex           = Quant::Framework::TradingCalendar->new('HKSE');
     my $trading_date = Date::Utility->new('15-Jul-2015');
     lives_ok {
         my $p = $ex->trading_period($trading_date);
@@ -622,7 +607,7 @@ subtest 'trading period' => sub {
         is_deeply $p, $expected, 'two periods';
     }
     'trading period for HKSE';
-    $ex = BOM::Market::Exchange->new('FOREX');
+    $ex = Quant::Framework::TradingCalendar->new('FOREX');
     lives_ok {
         my $p = $ex->trading_period($trading_date);
         # daily_open: 0s
@@ -655,7 +640,7 @@ subtest 'standard_closing_on' => sub {
     note("DST ends on 3 April 2016");
     my $in_dst  = Date::Utility->new('2016-03-01');
     my $non_dst = Date::Utility->new('2016-03-04');
-    my $asx     = BOM::Market::Exchange->new('ASX');
+    my $asx     = Quant::Framework::TradingCalendar->new('ASX');
     is $asx->standard_closing_on($in_dst)->epoch, $in_dst->plus_time_interval('6h')->epoch,
         'standard_closing_on return non DST closing on 1 April 2016';
     is $asx->standard_closing_on($non_dst)->epoch, $non_dst->plus_time_interval('6h')->epoch,
@@ -663,30 +648,19 @@ subtest 'standard_closing_on' => sub {
 };
 
 subtest 'standard_closing_on early close' => sub {
-    my $hkse        = BOM::Market::Exchange->new('HKSE');
+    my $hkse        = Quant::Framework::TradingCalendar->new('HKSE');
     my $early_close = Date::Utility->new('2009-12-24');
     is $hkse->standard_closing_on($early_close)->epoch, $early_close->plus_time_interval('7h40m')->epoch, 'no early close for indices';
 
     my $friday               = Date::Utility->new('2016-03-25');
     my $normal_thursday      = Date::Utility->new('2016-03-24');
     my $early_close_thursday = Date::Utility->new('2016-12-24');
-    my $fx                   = BOM::Market::Exchange->new('FOREX');
+    my $fx                   = Quant::Framework::TradingCalendar->new('FOREX');
     is $fx->standard_closing_on($friday)->epoch, $friday->plus_time_interval('21h')->epoch, 'standard close for friday is 21:00 GMT';
     is $fx->standard_closing_on($normal_thursday)->epoch, $normal_thursday->plus_time_interval('23h59m59s')->epoch,
         'normal standard closing is 23:59:59 GMT';
     is $fx->standard_closing_on($early_close_thursday)->epoch, $early_close_thursday->plus_time_interval('23h59m59s')->epoch,
         'normal standard closing is 23:59:59 GMT';
-
-    # Gold has the same exchange as FOREX.
-    # Yng Shan is planning to create a commodities exchange in the near future.
-    # This test will fail when that happens.
-    my $gold = BOM::Market::Underlying->new('frxXAUUSD');
-    is $gold->exchange->standard_closing_on($friday)->epoch, $friday->plus_time_interval('21h')->epoch, 'standard close for friday is 21:00 GMT';
-    is $gold->exchange->standard_closing_on($normal_thursday)->epoch, $normal_thursday->plus_time_interval('23h59m59s')->epoch,
-        'normal standard closing is 23:59:59 GMT';
-    is $gold->exchange->standard_closing_on($early_close_thursday)->epoch, $early_close_thursday->plus_time_interval('23h59m59s')->epoch,
-        'normal standard closing is 23:59:59 GMT';
-
 };
 
 done_testing;
