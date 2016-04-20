@@ -66,7 +66,7 @@ localization language (default is 'en')
 
 has locale => (
     is  => 'ro',
-    default => 'en'
+    default => 'EN'
 );
 
 =head2 chronicle_reader
@@ -1260,6 +1260,7 @@ sub new {
     my ($self, $symbol, $chronicle_r, $lang, $for_date) = @_;
 
     state %cached_objects;
+    $lang //= 'EN';
 
     my $key = join('::', $symbol, $lang);
 

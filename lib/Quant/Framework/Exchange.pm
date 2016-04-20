@@ -77,7 +77,7 @@ sub BUILDARGS {
     my ($class, $symbol) = @_;
 
     state $params_ref;
-    $params_ref //= YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml')->{$symbol}
+    $params_ref //= YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml'))->{$symbol};
     $params_ref->{symbol} = $symbol;
 
     return $params_ref;
