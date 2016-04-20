@@ -6,20 +6,23 @@ use warnings;
 use Test::More tests => 3;
 use Test::NoWarnings;
 
-use BOM::Test::Data::Utility::UnitTestMarketData qw( :init );
-use BOM::Market::Exchange;
+use Quant::Framework::Utils::Test;
+use Quant::Framework::TradingCalendar;
+use Quant::Framework::Exchange;
 use Test::MockModule;
+use File::ShareDir ();
 use YAML::XS qw(LoadFile);
 
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
 my $date = Date::Utility->new('2013-12-08');
 note("Exchange tests for_date " . $date->date);
 
 subtest 'trading days' => sub {
-    my $exp       = LoadFile('/home/git/regentmarkets/bom-market/t/BOM/Market/Exchange/expected_trading_days.yml');
+    my $exp       = LoadFile(File::ShareDir::dist_file('expected_trading_days.yml');
     my @exchanges = qw(JSC SES NYSE_SPC ASX ODLS ISE BSE FOREX JSE SWX FSE DFM EURONEXT HKSE NYSE RANDOM RANDOM_NOCTURNE TSE OSLO);
 
     foreach my $exchange_symbol (@exchanges) {
-        my $e = BOM::Market::Exchange->new($exchange_symbol);
+        my $e = Quant::Framework::Framework::TradingCalendar->new($exchange_symbol, $chronicle_r);
         for (0 .. 6) {
             is $e->trades_on($date->plus_time_interval($_ . 'd')), $exp->{$exchange_symbol}->[$_],
                 'correct trading days list for ' . $exchange_symbol;

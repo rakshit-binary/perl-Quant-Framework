@@ -8,12 +8,13 @@ Quant::Framework::TradingCalendar
 
 This module is responsible about everything related to time-based status of an exchange (whether exchange is open/closed, has holiday, is partially open, ...)
 Plus all related helper modules (trading days between two days where exchange is open, trading breaks, DST effect, open/close time, ...).
+One important feature of this module is that it is designed for READING information not writing.
 
 =cut
 
 =head1 USAGE
 
-    my $exchange = Quant::Framework::TradingCalendar->new('LSE');
+    my $calendar = Quant::Framework::TradingCalendar->new('LSE');
 
 =cut
 
@@ -29,8 +30,8 @@ use List::Util qw(min max);
 use Memoize;
 use Carp;
 use Scalar::Util qw(looks_like_number);
+use File::ShareDir ();
 use Data::Chronicle::Reader;
-use Data::Chronicle::Writer;
 
 use Quant::Framework::Holiday;
 use Quant::Framework::PartialTrading;
@@ -57,22 +58,6 @@ has symbol => (
     isa => 'Str',
 );
 
-=head2 chronicle_reader, chronicle_writer
-
-Used to work with Chronicle storage data (Holidays and Partial trading data)
-
-=cut
-
-has chronicle_reader => (
-    is      => 'ro',
-    isa     => 'Data::Chronicle::Reader',
-);
-
-has chronicle_writer => (
-    is      => 'ro',
-    isa     => 'Data::Chronicle::Writer',
-);
-
 =head2 locale
 
 localization language (default is 'en')
@@ -82,6 +67,17 @@ localization language (default is 'en')
 has locale => (
     is  => 'ro',
     default => 'en'
+);
+
+=head2 chronicle_reader
+
+Used to work with Chronicle storage data (Holidays and Partial trading data)
+
+=cut
+
+has chronicle_reader => (
+    is      => 'ro',
+    isa     => 'Data::Chronicle::Reader',
 );
 
 =head2 for_date
@@ -150,7 +146,6 @@ sub _build_early_closes {
 
     my $ref = Quant::Framework::PartialTrading->new({
             chronicle_reader => $self->chronicle_reader,
-            chronicle_writer => $self->chronicle_writer,
             type             => 'early_closes'})->get_partial_trading_for($self->symbol, $self->for_date);
     my %early_closes = map { Date::Utility->new($_)->days_since_epoch => $ref->{$_} } keys %$ref;
 
@@ -162,7 +157,6 @@ sub _build_late_opens {
 
     my $ref = Quant::Framework::PartialTrading->new({
             chronicle_reader => $self->chronicle_reader,
-            chronicle_writer => $self->chronicle_writer,
             type             => 'late_opens'})->get_partial_trading_for($self->symbol, $self->for_date);
     my %late_opens = map { Date::Utility->new($_)->days_since_epoch => $ref->{$_} } keys %$ref;
 
@@ -209,7 +203,7 @@ has trading_days_list => (
 );
 
 {
-    my $trading_days_aliases = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchanges_trading_days_aliases.yml');
+    my $trading_days_aliases = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchanges_trading_days_aliases.yml'));
 
     sub _build_trading_days_list {
         my $self = shift;
@@ -238,14 +232,14 @@ has [qw(trading_timezone tenfore_trading_timezone)] => (
 );
 
 sub BUILDARGS {
-    my ($class, $symbol, $for_date, $locale) = @_;
+    my ($class, $symbol, $chronicle_r, $locale, $for_date) = @_;
 
     croak "Exchange symbol must be specified" unless $symbol;
-    #TODO: load using File::Dist from share dir
-    my $params_ref = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml')->{$symbol}
+    my $params_ref = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml'))->{$symbol};
     $params_ref->{symbol} = $symbol;
     $params_ref->{for_date} = $for_date if $for_date;
     $params_ref->{locale} = $locale if $locale;
+    $params_ref->{chronicle_reader} = $chronicle_r;
 
     foreach my $key (keys %{$params_ref->{market_times}}) {
         foreach my $trading_segment (keys %{$params_ref->{market_times}->{$key}}) {
@@ -294,23 +288,6 @@ has _build_time => (
 # currently we allow age to be up to 30 seconds
 sub _object_expired {
     return shift->_build_time + 30 < time;
-}
-
-sub new {
-    my ($self, $symbol, $for_date) = @_;
-
-    state %cached_objects;
-
-    my $lang = $self->locale;
-    my $key = join('::', $symbol, $lang);
-
-    my $ex = $cached_objects{$key};
-    if (not $ex or $ex->_object_expired) {
-        $ex = $self->_new($symbol, $for_date);
-        $cached_objects{$key} = $ex;
-    }
-
-    return $ex;
 }
 
 =head2 weight_on
@@ -1277,6 +1254,22 @@ sub trading_period {
     }
 
     return \@periods;
+}
+
+sub new {
+    my ($self, $symbol, $chronicle_r, $lang, $for_date) = @_;
+
+    state %cached_objects;
+
+    my $key = join('::', $symbol, $lang);
+
+    my $ex = $cached_objects{$key};
+    if (not $ex or $ex->_object_expired) {
+        $ex = $self->_new($symbol, $chronicle_r, $lang, $for_date);
+        $cached_objects{$key} = $ex;
+    }
+
+    return $ex;
 }
 
 no Moose;
