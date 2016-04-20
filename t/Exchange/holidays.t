@@ -6,15 +6,15 @@ use warnings;
 use Test::More tests => 3;
 use Test::Exception;
 use Test::NoWarnings;
-
-use BOM::Market::Exchange;
 use Date::Utility;
 
-use BOM::Test::Data::Utility::UnitTestMarketData qw( :init );
+use Quant::Framework::TradingCalendar;
+use Quant::Framework::Utils::Test;
 
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
 my $date = Date::Utility->new('2013-12-01');
 note("Exchange tests for_date " . $date->date);
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'holiday',
     {
         recorded_date => $date,
@@ -32,10 +32,12 @@ BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
                 "Easter Monday" => [qw(LSE)],
             },
         },
+        chronicle_writer => $chronicle_w,
+        chronicle_reader => $chronicle_r,
     });
 
 subtest 'holidays' => sub {
-    my ($LSE, $FOREX, $RANDOM) = map { BOM::Market::Exchange->new($_, $date) } qw(LSE FOREX RANDOM);
+    my ($LSE, $FOREX, $RANDOM) = map { Quant::Framework::TradingCalendar->new($_, $chronicle_r, 'EN', $date) } qw(LSE FOREX RANDOM);
     is $LSE->for_date->epoch, $date->epoch, 'for_date properly set in Exchange';
     my %expected_holidays = (
         15831 => 'Early May Bank Holiday',
@@ -60,7 +62,7 @@ subtest 'holidays' => sub {
 };
 
 subtest 'pseudo holidays' => sub {
-    my $FOREX = BOM::Market::Exchange->new('FOREX', $date);
+    my $FOREX = Quant::Framework::TradingCalendar->new('FOREX', $chronicle_r, 'EN', $date);
     my $start = Date::Utility->new('25-Dec-13')->minus_time_interval('7d');
     note("seven days before and after Chritmas is pseudo-holiday period");
     for (map { $start->plus_time_interval($_ . 'd') } (0 .. 14)) {
