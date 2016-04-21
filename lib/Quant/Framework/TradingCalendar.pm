@@ -25,7 +25,6 @@ use feature 'state';
 use Moose;
 use DateTime;
 use DateTime::TimeZone;
-use File::Slurp qw(read_file);
 use List::Util qw(min max);
 use Memoize;
 use Carp;

@@ -16,7 +16,6 @@ lib/Quant/Framework/Utils/Test.pm
 lib/Quant/Framework/Utils/Types.pm
 Makefile.PL
 MANIFEST
-Quant-Framework-0.09.tar.gz
 README.md
 share/exchange.yml
 share/exchanges_trading_days_aliases.yml

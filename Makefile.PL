@@ -29,6 +29,7 @@ WriteMakefile(
         'Test::CheckManifest' => 1.29,
         'Test::Exception' => 0,
         'Test::MockModule' => 0,
+        'Test::MockObject::Extends' => 0,
         'Test::NoWarnings' => 0,
         'Date::Utility' => 0,
         'Data::Chronicle::Writer' => 0,

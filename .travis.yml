@@ -15,6 +15,7 @@ before_install:
     - "cpanm File::ShareDir"
     - "cpanm Test::Manifest"
     - "cpanm Test::MockModule"
+    - "cpanm Test::MockObject::Extends"
     - "cpanm Date::Utility" 
 script:
   perl Makefile.PL && RELEASE_TESTING=1 make test
