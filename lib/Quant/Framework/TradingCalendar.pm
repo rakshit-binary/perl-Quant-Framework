@@ -219,14 +219,9 @@ The timezone in which the exchange conducts business.
 
 This should be a string which will allow the standard DateTime modules to find the proper information.
 
-=head2 tenfore_trading_timezone
-
-This reflects the timezone in which tenfore thinks the exchange conducts business.
-TODO: remove tenfore_trading_timezone
-
 =cut
 
-has [qw(trading_timezone tenfore_trading_timezone)] => (
+has [qw(trading_timezone)] => (
     is  => 'ro',
     isa => 'Maybe[Str]',
 );

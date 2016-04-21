@@ -93,3 +93,5 @@ partial_trading:
   class_name: 'Quant::Framework::PartialTrading'
   data:
     calendar: {}
+
+
