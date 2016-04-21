@@ -225,6 +225,12 @@ has [qw(trading_timezone)] => (
     isa => 'Maybe[Str]',
 );
 
+=head2 BUILDARGS
+
+Internal method to pre-process construction arguments
+
+=cut
+
 sub BUILDARGS {
     my ($class, $symbol, $chronicle_r, $locale, $for_date) = @_;
 
@@ -792,6 +798,12 @@ sub trading_breaks {
     return $self->_get_exchange_open_times($when, 'trading_breaks');
 }
 
+=head2 is_in_trading_break
+
+Given an epoch returns true if exchange in in break time
+
+=cut
+
 sub is_in_trading_break {
     my ($self, $when) = @_;
 
@@ -832,7 +844,7 @@ sub closes_early_on {
     return $closes_early;
 }
 
-=head2 opens_late
+=head2 opens_late_on
 
 Returns true if the exchange opens late on the given (RMG) date.
 
@@ -1223,6 +1235,12 @@ sub _normalize_on_symbol_and_args {
 
     return join ',', ($self->symbol, @other_args);
 }
+
+=head2 trading_period
+
+Given an epoch returns the period of trading of the exchange in that day
+
+=cut
 
 sub trading_period {
     my ($self, $when) = @_;
