@@ -11,9 +11,7 @@ use Data::Chronicle::Writer;
 
 =head2 type
 
-The type of partial trading:
-- early close
-- late open
+Partial trading means times when an exchange is opened later than usual (late_open) or closed earlier than usual (early_close).
 
 =cut
 

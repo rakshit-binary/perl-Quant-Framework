@@ -162,7 +162,7 @@ sub _build_late_opens {
     return \%late_opens;
 }
 
-## PRIVATE attribute market_times
+## attribute market_times
 #
 # A hashref of human-readable times, which are converted to epochs for a given day
 #
@@ -201,15 +201,13 @@ has trading_days_list => (
     lazy_build => 1,
 );
 
-{
-    my $trading_days_aliases = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchanges_trading_days_aliases.yml'));
+sub _build_trading_days_list {
+    state $trading_days_aliases = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchanges_trading_days_aliases.yml'));
 
-    sub _build_trading_days_list {
-        my $self = shift;
-        return \@{$trading_days_aliases->{$self->trading_days}};
+    my $self = shift;
+    return \@{$trading_days_aliases->{$self->trading_days}};
 
     }
-}
 
 =head2 trading_timezone
 
@@ -467,7 +465,7 @@ Memoize::memoize('_days_between', NORMALIZER => '_normalize_on_dates');
 
 =head2 trading_days_between
 
-Returns the number of trading days _between_ two given RMG dates.
+Returns the number of trading days _between_ two given dates.
 
     $exchange->trading_days_between(Date::Utility->new('4-May-10'),Date::Utility->new('5-May-10'));
 
@@ -483,7 +481,7 @@ Memoize::memoize('trading_days_between', NORMALIZER => '_normalize_on_dates');
 
 =head2 holiday_days_between
 
-Returns the number of holidays _between_ two given RMG dates.
+Returns the number of holidays _between_ two given dates.
 
     $exchange->trading_days_between(Date::Utility->new('4-May-10'),Date::Utility->new('5-May-10'));
 
@@ -823,7 +821,7 @@ sub is_in_trading_break {
 
 =head2 closes_early_on
 
-Returns true if the exchange closes early on the given (RMG) date.
+Returns true if the exchange closes early on the given date.
 
 =cut
 
@@ -846,7 +844,7 @@ sub closes_early_on {
 
 =head2 opens_late_on
 
-Returns true if the exchange opens late on the given (RMG) date.
+Returns true if the exchange opens late on the given date.
 
 =cut
 

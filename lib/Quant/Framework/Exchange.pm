@@ -47,18 +47,6 @@ has currency => (
     is => 'ro',
 );
 
-=head2 tenfore_trading_timezone
-
-This reflects the timezone in which tenfore thinks the exchange conducts business.
-TODO: remove tenfore_trading_timezone
-
-=cut
-
-has [qw(tenfore_trading_timezone)] => (
-    is  => 'ro',
-    isa => 'Maybe[Str]',
-);
-
 =head2 display_name
 
 A name we can show to someone someday
