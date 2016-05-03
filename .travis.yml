@@ -14,6 +14,11 @@ before_install:
     - "cpanm YAML::XS"
     - "cpanm File::ShareDir"
     - "cpanm Test::Manifest"
+    - "cpanm Test::MockModule"
+    - "cpanm Test::MockObject::Extends"
     - "cpanm Date::Utility" 
+    - "cpanm Memoize"
+    - "cpanm Memoize::HashKey::Ignore"
+    - "cpanm Time::Duration::Concise"
 script:
   perl Makefile.PL && RELEASE_TESTING=1 make test
