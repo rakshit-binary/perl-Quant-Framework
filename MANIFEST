@@ -1,7 +1,9 @@
 .travis.yml
 Changes
 lib/Quant/Framework.pm
+lib/Quant/Framework/Asset.pm
 lib/Quant/Framework/CorporateAction.pm
+lib/Quant/Framework/Currency.pm
 lib/Quant/Framework/Dividend.pm
 lib/Quant/Framework/EconomicEventCalendar.pm
 lib/Quant/Framework/Exchange.pm
@@ -22,8 +24,10 @@ share/exchanges_trading_days_aliases.yml
 share/expected_trading_days.yml
 share/test_data.yml
 t/00-load.t
+t/asset.t
 t/corporate_actions.t
 t/corporate_actions2.t
+t/currency.t
 t/dividend.t
 t/economic_event.t
 t/exchange.t
