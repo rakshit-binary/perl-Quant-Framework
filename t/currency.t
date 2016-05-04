@@ -67,11 +67,7 @@ subtest 'retrieve interest rate and implied rate' => sub {
         my $tiy   = 365.0/365.0;
         my $rates = $usd->rate_for($tiy);
 
-        print "rates: $rates\n";
-
         my $implied_rates = $usd->rate_implied_from('JPY',$tiy);
-
-        print "implied rates: $implied_rates \n";
 
         is $rates, 0.003, "rates retrieved successfully through Currency.pm";
         is $implied_rates, 0.001, "implied rates retrieved successfully through Currency.pm";
