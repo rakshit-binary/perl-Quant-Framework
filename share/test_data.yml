@@ -94,4 +94,9 @@ partial_trading:
   data:
     calendar: {}
 
+asset:
+  class_name: 'Quant::Framework::Asset'
+  data:
+    symbol: UKTSCO
+
 
