@@ -17,8 +17,7 @@ lib/Quant/Framework/Utils/Rates.pm
 lib/Quant/Framework/Utils/Test.pm
 lib/Quant/Framework/Utils/Types.pm
 Makefile.PL
-This list of files
-Quant-Framework-0.11.tar.gz
+MANIFEST          This list of files
 README.md
 share/exchange.yml
 share/exchanges_trading_days_aliases.yml
