@@ -15,6 +15,12 @@ has calendar => (
     isa        => 'Quant::Framework::TradingCalendar',
 );
 
+has for_date => (
+    is          => 'ro',
+    isa     => 'Maybe[Date::Utility]',
+    default => undef,
+);
+
 =head2 chronicle_reader
 
 Used to work with Chronicle storage data (Holidays and Partial trading data)
@@ -61,6 +67,34 @@ sub _build_asset_symbol {
     }
 
     return $symbol;
+}
+
+has asset => (
+    is         => 'ro',
+    lazy_build => 1,
+);
+
+=head2 asset
+
+Return the asset object depending on the market type.
+
+=cut
+
+sub _build_asset {
+    my $self = shift;
+
+    return unless $self->asset_symbol;
+    my $type =
+          $self->submarket->asset_type eq 'currency'
+        ? $self->submarket->asset_type
+        : $self->market->asset_type;
+    my $which = $type eq 'currency' ? 'Quant::Framework::Currency' : 'Quant::Framework::Asset';
+
+    return $which->new({
+        symbol           => $self->asset_symbol,
+        for_date         => $self->for_date,
+        chronicle_reader => $self->chronicle_reader,
+    });
 }
 
 # This returns number of days after the trade date which determine the delivery

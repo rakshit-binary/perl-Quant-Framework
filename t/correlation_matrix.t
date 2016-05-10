@@ -42,6 +42,7 @@ subtest general => sub {
 
     my $expiry_conventions = Quant::Framework::ExpiryConventions->new(
         chronicle_reader        => $chronicle_r,
+        for_date                => $date,
         symbol                  => $index,
         quoted_currency         => $qcurrency,
         calendar                => $calendar,
