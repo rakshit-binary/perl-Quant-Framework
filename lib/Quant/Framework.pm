@@ -11,7 +11,7 @@ Quant::Framework - Gateway to fetch market-data from Quant::Framework
 
 =head1 VERSION
 
-0.10
+0.11
 
 =head1 SYNOPSYS
 
