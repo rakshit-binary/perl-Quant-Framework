@@ -18,7 +18,6 @@ use Moose;
 extends 'Quant::Framework::Utils::MarketData';    
 
 use namespace::autoclean;
-use Data::Compare qw( Compare );
 use Math::Function::Interpolator;
 use Date::Utility;
 
