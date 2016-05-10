@@ -71,31 +71,7 @@ sub _build_asset_symbol {
 
 has asset => (
     is         => 'ro',
-    lazy_build => 1,
 );
-
-=head2 asset
-
-Return the asset object depending on the market type.
-
-=cut
-
-sub _build_asset {
-    my $self = shift;
-
-    return unless $self->asset_symbol;
-    my $type =
-          $self->submarket->asset_type eq 'currency'
-        ? $self->submarket->asset_type
-        : $self->market->asset_type;
-    my $which = $type eq 'currency' ? 'Quant::Framework::Currency' : 'Quant::Framework::Asset';
-
-    return $which->new({
-        symbol           => $self->asset_symbol,
-        for_date         => $self->for_date,
-        chronicle_reader => $self->chronicle_reader,
-    });
-}
 
 # This returns number of days after the trade date which determine the delivery
 # and spot date. Except USDCAD which is 1 day, other are all 2 days.
@@ -385,8 +361,8 @@ sub _EQ_month_and_year_term_vol_expiry_date {
     if ($expiry_date->is_a_weekend) {
         $expiry_date =
               $last_day
-            ? $self->trade_date_before($expiry_date)
-            : $self->trade_date_after($expiry_date);
+            ? $self->calendar->trade_date_before($expiry_date)
+            : $self->calendar->trade_date_after($expiry_date);
     }
 
     return $expiry_date;
