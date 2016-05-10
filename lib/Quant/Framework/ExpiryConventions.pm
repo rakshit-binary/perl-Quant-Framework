@@ -170,7 +170,7 @@ sub _spot_date {
     return $spot_date;
 }
 
-=head1 vol_expiry_date
+=head2 vol_expiry_date
 
  $underlying->vol_expiry_date({from => $date, term => '1W'});
 
@@ -358,7 +358,7 @@ sub _EQ_month_and_year_term_vol_expiry_date {
     return $expiry_date;
 }
 
-=head1 forward_expiry_date
+=head2 forward_expiry_date
 
 $underlying->forward_expiry_date({from => $date, term => '1W'});
 

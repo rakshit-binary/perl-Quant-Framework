@@ -82,6 +82,12 @@ around _document_content => sub {
     };
 };
 
+=head3 C<< save >>
+
+Saves the correlation matrix into Chronicle
+
+=cut
+
 sub save {
     my $self = shift;
 
@@ -158,6 +164,14 @@ sub _build_correlations {
 
     return $self->document->{correlations};
 }
+
+=head3 C<< correlation_for >>
+
+return correlation coefficient for given index, time-of-year and currency
+You have to pass an instance of Quant::Framework::ExpiryConventions module
+because it is needed in the calculations.
+
+=cut
 
 sub correlation_for {
     my ($self, $index, $payout_currency, $tiy, $expiry_conventions) = @_;
