@@ -231,7 +231,7 @@ sub _FX_month_and_year_term_vol_expiry_date {
     my ($self, $args)   = @_;
     my ($from, $months) = @{$args}{qw(from months)};
 
-    # Step 1: To obtain the valid forward deliverty date
+    # Step 1: To obtain the valid forward delivery date
     my $forward_delivery_date = $self->_FX_forward_delivery_date({
         from   => $from,
         months => $months
@@ -281,7 +281,7 @@ sub _FX_forward_delivery_date {
     my $first_day_of_next_mth_after_spot_mth = Date::Utility->new('1-' . $spot_date->months_ahead(1));
     my $last_trading_day_of_spot_mth = $self->calendar->trade_date_before($first_day_of_next_mth_after_spot_mth, {lookback => 1});
 
-# This is just to build the BOM date for forward month so that we can obtain the last day of forward month
+# This is just to build the date for forward month so that we can obtain the last day of forward month
     my $forward_date = Date::Utility->new(
         DateTime->new(
             year  => $forward_year,
@@ -307,7 +307,7 @@ sub _FX_forward_delivery_date {
         $last_day_of_month_rule = 0;
     }
 
-    #Step 4: convert the forward date to BOM date format
+    #Step 4: convert the forward date to Date::Utility date format
     $forward_date = Date::Utility->new(
         DateTime->new(
             year  => $forward_year,

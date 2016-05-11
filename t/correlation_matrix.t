@@ -20,7 +20,7 @@ subtest general => sub {
     my $date = Date::Utility->new('2015-05-26');
 
     Quant::Framework::Utils::Test::create_doc('correlation_matrix', {
-            recorded_date => $date,
+            recorded_date       => $date,
             chronicle_reader    => $chronicle_r,
             chronicle_writer    => $chronicle_w,
         });
@@ -50,7 +50,7 @@ subtest general => sub {
 
     my $tiy = 366 / 365;
     my $mycorr = $rho->correlation_for($index, $payout_currency, $tiy, $expiry_conventions);
-    is($mycorr, 0.516, "Correlation value for 1 year.");
+    is($mycorr, 0.516, "Correlation value for a little more than 1 year.");
 
     $tiy = 7 / 365;
     $mycorr = $rho->correlation_for($index, $payout_currency, $tiy, $expiry_conventions);
