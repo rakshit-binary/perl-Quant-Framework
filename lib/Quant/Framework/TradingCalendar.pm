@@ -237,14 +237,20 @@ Internal method to pre-process construction arguments
 
 =cut
 
+my $exchanges;
+
+BEGIN {
+    $exchanges = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml'));
+}
+
 sub BUILDARGS {
     my ($class, $symbol, $chronicle_r, $locale, $for_date) = @_;
 
     croak "Exchange symbol must be specified" unless $symbol;
-    my $params_ref = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml'))->{$symbol};
-    $params_ref->{symbol} = $symbol;
-    $params_ref->{for_date} = $for_date if $for_date;
-    $params_ref->{locale} = $locale if $locale;
+    my $params_ref = clone($exchanges->{$symbol});
+    $params_ref->{symbol}           = $symbol;
+    $params_ref->{for_date}         = $for_date if $for_date;
+    $params_ref->{locale}           = $locale if $locale;
     $params_ref->{chronicle_reader} = $chronicle_r;
 
     foreach my $key (keys %{$params_ref->{market_times}}) {
