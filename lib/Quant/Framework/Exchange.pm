@@ -5,7 +5,9 @@ use Carp qw(croak);
 use Date::Utility;
 use List::Util qw(first);
 use List::MoreUtils qw(uniq);
-use feature "state";
+use Clone qw(clone);
+use File::ShareDir;
+use YAML::XS qw(LoadFile);
 
 =head1 NAME
 
@@ -18,8 +20,8 @@ This module saves/loads holidays to/from Chronicle.
 =cut
 
 has symbol => (
-    is          => 'ro',
-    required    => 1,
+    is       => 'ro',
+    required => 1,
 );
 
 has [qw(
@@ -35,7 +37,7 @@ has delay_amount => (
     is      => 'ro',
     isa     => 'Num',
     default => 60,
-    );
+);
 
 =head2 currency
 
@@ -70,6 +72,12 @@ has is_OTC => (
     default => 0,
 );
 
+my $exchanges;
+
+BEGIN {
+  $exchanges = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml'));
+}
+
 =head2 BUILDARGS
 
 internal function to pre-process construction arguments
@@ -79,10 +87,7 @@ internal function to pre-process construction arguments
 sub BUILDARGS {
     my ($class, $symbol) = @_;
 
-    state $yml_cache;
-    $yml_cache //= YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml'));
-
-    my $params_ref = $yml_cache->{$symbol};
+    my $params_ref = clone($exchanges->{$symbol});
     $params_ref->{symbol} = $symbol;
 
     return $params_ref;

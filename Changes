@@ -4,3 +4,5 @@ Revision history for Quant-Framework
         Initial version, contains corporate actions.
 0.02    4 Feb 2016
         Fixing some unit-tests
+0.11    12 May 2016
+        Load yml file in BEGIN block
