@@ -48,3 +48,16 @@ subtype 'qf_interest_rate_type', as Str, where {
     "Invalid interest_rate type $_. Must be one of: " . join(', ', @interest_rate_types)
 };
 
+
+=head2 qf_cutoff_code
+
+A volatility surface cutoff code. Format follows Bloomberg naming conventions.
+
+=cut
+
+subtype 'qf_cutoff_code', as Str, where {
+    /^(?:Bangkok|Beijing|Bucharest|Budapest|Colombia|Frankfurt|Hanoi|Istanbul|Jakarta|Kuala Lumpur|London|Manila|Mexico|Moscow|Mumbai|New York|PTAX \(Ask\)|Santiago|Sao Paulo|Seoul|Singapore|Taipei|Taiwan|Tel Aviv|Tokyo|UTC|GMT|Warsaw|Wellington) \d{1,2}:\d{2}$/;
+}, message {
+    'Invalid cutoff_code [' . $_ . ']';
+};
+

@@ -3,20 +3,19 @@ package BOM::MarketData::VolSurface::Cutoff;
 use Moose;
 use DateTime;
 use DateTime::TimeZone;
-
-use BOM::Market::Types;
 use Date::Utility;
-use BOM::MarketData::VolSurface::Utils;
+use Quant::Framework::VolSurface::Utils;
+use Quant::Framework::Utils::Types;
 
-=head1 BOM::MarketData::VolSurface::Cutoff coercion
+=head1 Quant::Framework::VolSurface::Cutoff coercion
 
-If you'd like to coerce a BOM::MarketData::VolSurface::Cutoff from a String,
+If you'd like to coerce a Quant::Framework::VolSurface::Cutoff from a String,
 the coercion rule is here.
 
   package MyClass;
-  use BOM::MarketData::VolSurface::Cutoff;
+  use Quant::Framework::VolSurface::Cutoff;
   has cutoff => (
-    isa => 'BOM::MarketData::VolSurface::Cutoff',
+    isa => 'Quant::Framework::VolSurface::Cutoff',
     coerce => 1,
   );
 
@@ -33,7 +32,7 @@ the coercion rule is here.
 
 has code => (
     is       => 'ro',
-    isa      => 'bom_cutoff_code',
+    isa      => 'qf_cutoff_code',
     required => 1,
 );
 
@@ -43,7 +42,7 @@ has code => (
 
 has code_gmt => (
     is         => 'rw',
-    isa        => 'bom_cutoff_code',
+    isa        => 'qf_cutoff_code',
     lazy_build => 1,
 );
 
@@ -137,7 +136,7 @@ around BUILDARGS => sub {
 =head2 seconds_to_cutoff_time
 
 Gives the number of BOM trading seconds from a given date
-to the next cutoff, given a maturity and an underlying.
+to the next cutoff, given a maturity and a calendar.
 
 =cut
 
@@ -145,7 +144,7 @@ sub seconds_to_cutoff_time {
     my ($self, $args) = @_;
 
     my $from       = $args->{from}       || die 'No "from" date given to seconds_to_cutoff_time.';
-    my $underlying = $args->{underlying} || die 'No underlying given to seconds_to_cutoff_time.';
+    my $calendar = $args->{calendar} || die 'No Calendar given to seconds_to_cutoff_time.';
     my $maturity   = $args->{maturity}   || die 'No maturity given to seconds_to_cutoff_time.';
 
     # From the given $from date and $maturity, we get the "effective day"
@@ -158,19 +157,19 @@ sub seconds_to_cutoff_time {
     # of effective day.
     my $effective_day = $self->_vol_utils->effective_date_for($from->plus_time_interval($maturity . 'd'));
 
-    my $cutoff_date = $self->cutoff_date_for_effective_day($effective_day, $underlying);
+    my $cutoff_date = $self->cutoff_date_for_effective_day($effective_day, $calendar);
 
-    my $seconds = $underlying->calendar->seconds_of_trading_between_epochs($from->epoch, $cutoff_date->epoch);
+    my $seconds = $calendar->seconds_of_trading_between_epochs($from->epoch, $cutoff_date->epoch);
 
     return $seconds;
 }
 
 has _vol_utils => (
     is       => 'ro',
-    isa      => 'BOM::MarketData::VolSurface::Utils',
+    isa      => 'Quant::Framework::VolSurface::Utils',
     init_arg => undef,
     lazy     => 1,
-    default  => sub { BOM::MarketData::VolSurface::Utils->new },
+    default  => sub { Quant::Framework::VolSurface::Utils->new },
 );
 
 =head2 cutoff_date_for_effective_day
@@ -182,7 +181,7 @@ the previous GMT day, as the effective day spans between NY1700s.
 =cut
 
 sub cutoff_date_for_effective_day {
-    my ($self, $effective_day, $underlying) = @_;
+    my ($self, $effective_day, $calendar) = @_;
 
     # We start by truncating the given effective_day back to GMT midnight,
     # then move forward to the cutoff time (in GMT). This is our cutoff date,
@@ -204,7 +203,7 @@ sub cutoff_date_for_effective_day {
     # I put the $attempts login in place as I'm uncomfortable about adding
     # a loop that could theoretically never break.
     my $attempts;
-    while (not _valid_cutoff_date($self->_vol_utils->effective_date_for($cutoff_date), $underlying)) {
+    while (not _valid_cutoff_date($self->_vol_utils->effective_date_for($cutoff_date), $calendar)) {
         die('Could not find valid cutoff date after 10 attempts, so bailing out!') if ++$attempts > 10;
         $cutoff_date = Date::Utility->new($cutoff_date->epoch + 86400);
     }
@@ -213,9 +212,7 @@ sub cutoff_date_for_effective_day {
 }
 
 sub _valid_cutoff_date {
-    my ($cutoff_date, $underlying) = @_;
-
-    my $calendar = $underlying->calendar;
+    my ($cutoff_date, $calendar) = @_;
 
     return $calendar->trades_on($cutoff_date);
 }

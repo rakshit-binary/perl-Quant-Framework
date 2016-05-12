@@ -1,4 +1,4 @@
-package BOM::MarketData::VolSurface;
+package Quant::Framework::VolSurface;
 
 =head1 NAME
 
@@ -23,12 +23,9 @@ use Number::Closest::XS qw(find_closest_numbers_around);
 use Math::Function::Interpolator;
 
 use Format::Util::Numbers qw( roundnear );
-use BOM::Platform::Runtime;
-use BOM::Platform::Context;
-use BOM::Market::Types;
-use BOM::MarketData::VolSurface::Cutoff;
-use BOM::MarketData::VolSurface::Validator;
-use BOM::MarketData::VolSurface::Utils;
+use Quant::Framework::VolSurface::Cutoff;
+use Quant::Framework::VolSurface::Validator;
+use Quant::Framework::VolSurface::Utils;
 
 =head1 ATTRIBUTES
 
@@ -981,6 +978,19 @@ sub _market_maturities_interpolation_function {
 has for_date => (
     is      => 'ro',
     default => undef,
+);
+
+has calendar => (
+    is        => 'ro',
+    #TODO: complete this
+);
+has system_symbol => (
+    is      => 'ro',
+    #TODO: complete this
+);
+has is_forex => (
+    is      => 'ro',
+    #TODO: complete this
 );
 
 =head2 underlying

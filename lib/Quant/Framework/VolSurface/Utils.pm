@@ -1,8 +1,8 @@
-package BOM::MarketData::VolSurface::Utils;
+package Quant::Framework::VolSurface::Utils;
 
 =head1 NAME
 
-BOM::MarketData::VolSurface::Utils
+Quant::Framework::VolSurface::Utils
 
 =head1 DESCRIPTION
 
@@ -10,15 +10,13 @@ Some general vol-related utility functions.
 
 =head1 SYNOPSIS
 
-  my $utils = BOM::MarketData::VolSurface::Utils->new;
+  my $utils = Quant::Framework::VolSurface::Utils->new;
 
 =cut
 
 use Moose;
 
 use DateTime::TimeZone;
-use Memoize;
-
 use Date::Utility;
 
 =head2 NY1700_rollover_date_on

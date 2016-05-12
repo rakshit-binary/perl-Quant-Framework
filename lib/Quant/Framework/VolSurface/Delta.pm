@@ -16,6 +16,11 @@ use Storable qw( dclone );
 use Try::Tiny;
 use BOM::System::Chronicle;
 
+has spot => (
+    is      => 'ro',
+    #TODO: complete this
+);
+
 =head2 for_date
 
 The date for which we wish data

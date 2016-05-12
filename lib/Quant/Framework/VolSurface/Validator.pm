@@ -1,19 +1,19 @@
-package BOM::MarketData::VolSurface::Validator;
+package Quant::Framework::VolSurface::Validator;
 
 =head1 NAME
 
-BOM::MarketData::VolSurface::Validator
+Quant::Framework::VolSurface::Validator
 
 =head1 DESCRIPTION
 
 Provides subroutines that can perform various
-validation checks on BOM::MarketData::VolSurface objects.
+validation checks on Quant::Framework::VolSurface objects.
 
 =head1 SYNOPSIS
 
-    use BOM::MarketData::VolSurface::Validator;
+    use Quant::Framework::VolSurface::Validator;
 
-    my $validator = BOM::MarketData::VolSurface::Validator->new;
+    my $validator = Quant::Framework::VolSurface::Validator->new;
 
     try {
         $validator->validate_surface($surface);
@@ -33,10 +33,8 @@ use Math::Business::BlackScholes::Binaries;
 
 use List::MoreUtils qw(indexes any);
 use Date::Utility;
-use BOM::Platform::Runtime;
 use VolSurface::Utils qw( get_strike_for_spot_delta );
-use BOM::MarketData::VolSurface::Utils;
-use BOM::Platform::Static::Config;
+use Quant::Framework::VolSurface::Utils;
 
 =head1 METHODS
 
@@ -95,6 +93,7 @@ sub _check_identical_surface {
             return 1 if $existing->surface->{$term}->{smile}->{$point} != $surface->surface->{$term}->{smile}->{$point};
         }
     }
+    #TODO: move quanto_only to surface?
     if (time - $existing->recorded_date->epoch > 15000 and not $surface->{underlying}->quanto_only) {
         die('Surface data has not changed since last update [' . $existing->recorded_date->epoch . '].');
     }
@@ -143,10 +142,10 @@ sub _check_volatility_jump {
 sub _admissible_check {
     my $surface = shift;
 
-    my $underlying       = $surface->underlying;
-    my $calendar         = $underlying->calendar;
+    #TODO: add calendar to surface
+    my $calendar         = $surface->calendar;
     my $surface_type     = $surface->type;
-    my $S                = ($surface_type eq 'delta') ? $underlying->spot : $surface->spot_reference;
+    my $S                = ($surface_type eq 'delta') ? $surface->spot : $surface->spot_reference;
     my $premium_adjusted = $underlying->{market_convention}->{delta_premium_adjusted};
     my $now              = Date::Utility->new;
 
@@ -298,7 +297,7 @@ sub _admissible_check {
 sub _check_spot_reference {
     my $surface = shift;
 
-    die('spot_reference is undef during volupdate for underlying [' . $surface->underlying->symbol . ']')
+    die('spot_reference is undef during volupdate for underlying [' . $surface->symbol . ']')
         unless $surface->spot_reference;
 
     return 1;
@@ -318,7 +317,7 @@ sub _check_structure {
     my $surface = shift;
 
     my $surface_hashref = $surface->surface;
-    my $system_symbol   = $surface->underlying->system_symbol;
+    my $system_symbol   = $surface->system_symbol;
 
     # Somehow I do not know why there is a limit of term on delta surface, but
     # for moneyness we might need at least up to 2 years to get the spread.
@@ -344,9 +343,8 @@ sub _check_structure {
     }
 
     my $min_day = min @days;
-    my $market  = $surface->underlying->market;
 
-    if ($market eq 'forex' and $min_day > 7) {
+    if ($surface->is_forex and $min_day > 7) {
         die("ON term is missing in volsurface for underlying $system_symbol, the minimum term is $min_day");
     }
 
@@ -412,7 +410,7 @@ sub check_smiles {
     my ($self, $surface) = @_;
 
     foreach my $day (@{$surface->original_term_for_smile}) {
-        $self->check_smile($day, $surface->surface->{$day}->{smile}, $surface->underlying->system_symbol);
+        $self->check_smile($day, $surface->surface->{$day}->{smile}, $surface->system_symbol);
     }
 
     return 1;
@@ -486,7 +484,7 @@ sub _check_termstructure_for_calendar_arbitrage {
             my $atm_level = 100;
             my $atm_index = indexes { $_ == $atm_level } @volatility_level;
 
-            my $symbol = $surface->underlying->symbol;
+            my $symbol = $surface->symbol;
         }
     }
 # This check is ad-hoc, just to ensure there are no huge outliers, or calendar arbitrages.
