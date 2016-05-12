@@ -35,6 +35,7 @@ WriteMakefile(
         'Data::Chronicle::Writer' => 0,
         'Data::Chronicle::Reader' => 0,
         'Data::Chronicle::Mock' => 0,
+        'Format::Util::Numbers' => 0,
     },
     PREREQ_PM => {
         'Moose' => 0,
