@@ -204,13 +204,18 @@ has trading_days_list => (
     lazy_build => 1,
 );
 
+my $trading_days_aliases;
+
+BEGIN {
+    $trading_days_aliases = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchanges_trading_days_aliases.yml'));
+}
+
 sub _build_trading_days_list {
-    state $trading_days_aliases = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchanges_trading_days_aliases.yml'));
 
     my $self = shift;
     return \@{$trading_days_aliases->{$self->trading_days}};
 
-    }
+}
 
 =head2 trading_timezone
 
