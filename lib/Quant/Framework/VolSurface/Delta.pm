@@ -1,25 +1,17 @@
-package BOM::MarketData::VolSurface::Delta;
+package Quant::Framework::VolSurface::Delta;
 
 use Moose;
 
-extends 'BOM::MarketData::VolSurface';
+extends 'Quant::Framework::VolSurface';
 
-use BOM::System::Localhost;
 use Data::Dumper;
 use Date::Utility;
 use Format::Util::Numbers qw( roundnear );
-use BOM::Platform::Runtime;
 use VolSurface::Utils qw( get_delta_for_strike get_strike_for_moneyness );
 use List::MoreUtils qw(none);
 use Math::Function::Interpolator;
 use Storable qw( dclone );
 use Try::Tiny;
-use BOM::System::Chronicle;
-
-has spot => (
-    is      => 'ro',
-    #TODO: complete this
-);
 
 =head2 for_date
 
@@ -55,10 +47,10 @@ has document => (
 sub _build_document {
     my $self = shift;
 
-    my $document = BOM::System::Chronicle::get('volatility_surfaces', $self->symbol);
+    my $document = $self->chronicle_reader->get('volatility_surfaces', $self->symbol);
 
     if ($self->for_date and $self->for_date->epoch < Date::Utility->new($document->{date})->epoch) {
-        $document = BOM::System::Chronicle::get_for('volatility_surfaces', $self->symbol, $self->for_date->epoch);
+        $document = $self->chronicle_reader->get_for('volatility_surfaces', $self->symbol, $self->for_date->epoch);
 
         # This works around a problem with Volatility surfaces and negative dates to expiry.
         # We have to use the oldest available surface.. and we don't really know when it
@@ -74,13 +66,13 @@ sub save {
     my $self = shift;
 
     #if chronicle does not have this document, first create it because in document_content we will need it
-    if (not defined BOM::System::Chronicle::get('volatility_surfaces', $self->symbol)) {
+    if (not defined $self->chronicle_reader->get('volatility_surfaces', $self->symbol)) {
         #Due to some strange coding of retrieval for recorded_date, there MUST be an existing document (even empty)
         #before one can save a document. As a result, upon the very first storage of an instance of the document, we need to create an empty one.
-        BOM::System::Chronicle::set('volatility_surfaces', $self->symbol, {});
+        $self->chronicle_writer->set('volatility_surfaces', $self->symbol, {});
     }
 
-    return BOM::System::Chronicle::set('volatility_surfaces', $self->symbol, $self->_document_content, $self->recorded_date);
+    return $self->chronicle_writer->set('volatility_surfaces', $self->symbol, $self->_document_content, $self->recorded_date);
 }
 
 =head1 NAME
@@ -93,7 +85,7 @@ Represents a volatility surface, built from market implied volatilities.
 
 =head1 SYNOPSIS
 
-    my $surface = BOM::MarketData::VolSurface::Delta->new({underlying => BOM::Market::Underlying->new('frxUSDJPY')});
+    my $surface = Quant::Framework::VolSurface::Delta->new({underlying_config => $underlying_config});
 
 =cut
 
@@ -201,7 +193,7 @@ sub _convert_moneyness_to_delta {
 
     $args->{strike} = get_strike_for_moneyness({
         moneyness => $args->{moneyness},
-        spot      => $self->underlying->spot
+        spot      => $self->underlying_config->spot
     });
 
     delete $args->{moneyness};
@@ -222,13 +214,13 @@ sub _ensure_conversion_args {
     my ($self, $args) = @_;
 
     my %new_args   = %{$args};
-    my $underlying = $self->underlying;
+    my $underlying_config = $self->underlying_config;
 
     $new_args{t}                ||= $new_args{days} / 365;
-    $new_args{spot}             ||= $underlying->spot;
-    $new_args{premium_adjusted} ||= $underlying->{market_convention}->{delta_premium_adjusted};
-    $new_args{r_rate}           ||= $underlying->interest_rate_for($new_args{t});
-    $new_args{q_rate}           ||= $underlying->dividend_rate_for($new_args{t});
+    $new_args{spot}             ||= $underlying_config->spot;
+    $new_args{premium_adjusted} ||= $underlying_config->{market_convention}->{delta_premium_adjusted};
+    $new_args{r_rate}           ||= $self->builder->interest_rate_for($new_args{t});
+    $new_args{q_rate}           ||= $self->builder->dividend_rate_for($new_args{t});
 
     $new_args{atm_vol} ||= $self->get_volatility({
         days  => $new_args{days},
@@ -255,18 +247,18 @@ sub generate_surface_for_cutoff {
     my $surface1 = $self;
     $cutoff = BOM::MarketData::VolSurface::Cutoff->new($cutoff) if (not ref $cutoff);
     my $surface_hashref = {};
-    my $underlying      = $surface1->underlying;
+    my $underlying_config      = $surface1->underlying_config;
 
     foreach my $maturity (@{$surface1->term_by_day}) {
         my $t1 = $surface1->cutoff->seconds_to_cutoff_time({
             from       => $surface1->recorded_date,
             maturity   => $maturity,
-            underlying => $underlying,
+            calendar => $self->builder->build_trading_calendar,
         });
         my $t = $cutoff->seconds_to_cutoff_time({
             from       => $surface1->recorded_date,
             maturity   => $maturity,
-            underlying => $underlying,
+            calendar => $self->builder->build_trading_calendar,
         });
 
         foreach my $delta (@{$surface1->deltas}) {
@@ -423,7 +415,7 @@ sub clone {
     my $clone_args;
     $clone_args = dclone($args) if $args;
 
-    $clone_args->{underlying} = $self->underlying if (not exists $clone_args->{underlying});
+    $clone_args->{underlying_config} = $self->underlying_config if (not exists $clone_args->{underlying_config});
     $clone_args->{cutoff}     = $self->cutoff     if (not exists $clone_args->{cutoff});
 
     if (not exists $clone_args->{surface}) {
@@ -458,7 +450,7 @@ sub _build_cutoff {
     my $self = shift;
 
     my $date          = $self->for_date     ? $self->for_date  : Date::Utility->new;
-    my $cutoff_string = $self->_new_surface ? 'New York 10:00' : 'UTC ' . $self->underlying->calendar->standard_closing_on($date)->time_hhmm;
+    my $cutoff_string = $self->_new_surface ? 'New York 10:00' : 'UTC ' . $self->builder->build_trading_calendar->standard_closing_on($date)->time_hhmm;
 
     return BOM::MarketData::VolSurface::Cutoff->new($cutoff_string);
 }

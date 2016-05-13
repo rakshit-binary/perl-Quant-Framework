@@ -61,3 +61,19 @@ subtype 'qf_cutoff_code', as Str, where {
     'Invalid cutoff_code [' . $_ . ']';
 };
 
+=head2 qf_surface_type
+
+Volatility surface types.
+
+=cut
+
+my @surface_types = qw( delta flat moneyness phased);
+subtype 'qf_surface_type', as Str, where {
+    my $regex = '(' . join('|', @surface_types) . ')';
+    /^$regex$/;
+}, message {
+    "Invalid surface type $_. Must be one of: " . join(', ', @surface_types);
+};
+
+subtype 'qf_cutoff_helper', as 'Quant::Framework::VolSurface::Cutoff';
+coerce 'qf_cutoff_helper', from 'Str', via { Quant::Framework::VolSurface::Cutoff->new($_) };

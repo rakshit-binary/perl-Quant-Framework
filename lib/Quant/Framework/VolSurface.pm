@@ -2,7 +2,7 @@ package Quant::Framework::VolSurface;
 
 =head1 NAME
 
-BOM::MarketData::VolSurface
+Quant::Framework::VolSurface
 
 =head1 DESCRIPTION
 
@@ -27,6 +27,56 @@ use Quant::Framework::VolSurface::Cutoff;
 use Quant::Framework::VolSurface::Validator;
 use Quant::Framework::VolSurface::Utils;
 
+has for_date => (
+    is      => 'ro',
+    isa     => 'Maybe[Date::Utility]',
+    default => undef,
+);
+
+has chronicle_reader => (
+    is      => 'ro',
+    isa     => 'Data::Chronicle::Reader',
+);
+
+has chronicle_writer => (
+    is      => 'ro',
+    isa     => 'Data::Chronicle::Writer',
+);
+
+has underlying_config => (
+    is      => 'ro',
+    isa     => 'Quant::Framework::Utils::UnderlyingConfig',
+);
+
+has calendar => (
+    is          => 'ro',
+    isa         => 'Quant::Framework::TradingCalendar',
+    lazy_build  => 1,
+);
+
+sub _build_calendar {
+    my $self = shift;
+
+    return $self->builder->build_calendar;
+}
+
+has builder => (
+    is          => 'ro',
+    isa         => 'Quant::Framework::Utils::Builder'
+    lazy_build  => 1,
+);
+
+sub _build_builder {
+    my $self = shift;
+
+    return Quant::Framework::Utils::Bulder->new({
+            for_date => $self->for_date,
+            chronicle_reader => $self->chronicle_reader,
+            chronicle_writer => $self->chronicle_writer,
+            undeerlying_config => $self->underlying_config,
+        });
+}
+
 =head1 ATTRIBUTES
 
 =head2 symbol
@@ -34,9 +84,6 @@ use Quant::Framework::VolSurface::Utils;
 The symbol of the underlying that this surface is for.
 
 =cut
-has underlying_config => ...
-has calendar => ...
-has builder => ...
 
 has symbol => (
     is       => 'ro',
@@ -51,24 +98,7 @@ has _market_name => (
 );
 
 sub _build__market_name {
-    return shift->underlying->market->name;
-}
-
-=head2 _data_location
-
-Essentially private, but naming convention causes it to seem public. Cannot be given to constructor or modified.
-
-=cut
-
-has _data_location => (
-    is         => 'ro',
-    init_arg   => undef,
-    isa        => 'Str',
-    lazy_build => 1,
-);
-
-sub _build__data_location {
-    return 'volatility_surfaces';
+    return shift->underlying_config->market_name;
 }
 
 =head2 recorded_date
@@ -102,7 +132,7 @@ Type of the surface, delta, moneyness etc.
 
 has type => (
     is       => 'ro',
-    isa      => 'bom_surface_type',
+    isa      => 'qf_surface_type',
     required => 1,
     init_arg => undef,
     default  => undef,
@@ -369,24 +399,24 @@ has _new_surface => (
 
 has _vol_utils => (
     is         => 'ro',
-    isa        => 'BOM::MarketData::VolSurface::Utils',
+    isa        => 'Quant::Framework::VolSurface::Utils',
     init_arg   => undef,
     lazy_build => 1,
 );
 
 sub _build__vol_utils {
-    return BOM::MarketData::VolSurface::Utils->new;
+    return Quant::Framework::VolSurface::Utils->new;
 }
 
 has _vol_surface_validator => (
     is         => 'ro',
-    isa        => 'BOM::MarketData::VolSurface::Validator',
+    isa        => 'Quant::Framework::VolSurface::Validator',
     init_arg   => undef,
     lazy_build => 1,
 );
 
 sub _build__vol_surface_validator {
-    return BOM::MarketData::VolSurface::Validator->new;
+    return Quant::Framework::VolSurface::Validator->new;
 }
 
 # Getting the exchange off the underlying each time is crazy expensive and we
@@ -398,7 +428,7 @@ has _calendar => (
 );
 
 sub _build__calendar {
-    return shift->underlying->calendar;
+    return $self->builder->build_calendar;
 }
 
 has _ON_day => (
@@ -419,14 +449,13 @@ around BUILDARGS => sub {
     my %args  = (ref $_[0] eq 'HASH') ? %{$_[0]} : @_;
     my %day_for_tenor;
 
-    # We'll take your underlying, but we won't store it.
-    my $underlying = $args{underlying};
-    if (ref $underlying
-        and $underlying->isa('BOM::Market::Underlying'))
+    my $underlying_config = $args{underlying_config};
+    if (ref $underlyin_config
+        and $underlying_config->isa('Quant::Framework::Utils::UnderlyingConfig'))
     {
-        $args{symbol} = $underlying->system_symbol;
-        $args{for_date} = $underlying->for_date if $underlying->for_date;
-        delete $args{underlying};
+        $args{symbol} = $underlying_config->system_symbol;
+        #TODO: we won't store for_date in UnderlyingConfig so make sure
+        #we are passing it everywhere we create a vol-surface
     }
 
     if ($args{surface} or $args{recorded_date}) {
@@ -443,9 +472,18 @@ around BUILDARGS => sub {
             my $effective_date;
 
             if (_is_tenor($maturity)) {
-                $effective_date ||= BOM::MarketData::VolSurface::Utils->new->effective_date_for($args{recorded_date});
+                $effective_date ||= Quant::Framework::VolSurface::Utils->new->effective_date_for($args{recorded_date});
 
-                my $vol_expiry_date = $underlying->vol_expiry_date({
+                my $builder = Quant::Framework::Utils::Builder->new({
+                        for_date => $args->{for_date},
+                        chronicle_reader => $args->{chronicle_reader},
+                        chronicle_writer => $args->{chronicle_writer},
+                        undeerlying_config => $args->{underlying_config},
+                    });
+
+                my $expiry_conventions = $builder->build_expiry_conventions;
+
+                my $vol_expiry_date = $expiry_conventions->vol_expiry_date({
                     from => $effective_date,
                     term => $maturity
                 });
@@ -912,7 +950,7 @@ sub get_day_for_tenor {
 
     # If tenor doesn't already exist on surface, get $days via the vol expiry date.
     if (not $day) {
-        $day = $self->underlying->vol_expiry_date({
+        $day = $self->builder->build_expiry_conventions->vol_expiry_date({
                 from => $self->effective_date,
                 term => $tenor,
             })->days_between($self->effective_date);
@@ -958,13 +996,13 @@ sub _market_maturities_interpolation_function {
     );
 
     my $underlying = $self->underlying;
-    my $tau1       = $underlying->weighted_days_in_period($dates{T1}, $dates{T}) / 365;
-    my $tau2       = $underlying->weighted_days_in_period($dates{T1}, $dates{T2}) / 365;
+    my $tau1       = $builder->build_trading_calendar->weighted_days_in_period($dates{T1}, $dates{T}) / 365;
+    my $tau2       = $builder->build_trading_calendar->weighted_days_in_period($dates{T1}, $dates{T2}) / 365;
 
     warn(     'Error in volsurface['
             . $self->recorded_date->datetime
             . '] for symbol['
-            . $underlying->symbol
+            . $underlying_config->symbol
             . '] for maturity['
             . $T
             . '] points ['
@@ -976,41 +1014,6 @@ sub _market_maturities_interpolation_function {
         my ($vol1, $vol2) = @_;
         return sqrt(($tau1 / $tau2) * ($T2 / $T) * $vol2**2 + (($tau2 - $tau1) / $tau2) * ($T1 / $T) * $vol1**2);
     };
-}
-
-has for_date => (
-    is      => 'ro',
-    default => undef,
-);
-
-has calendar => (
-    is        => 'ro',
-    #TODO: complete this
-);
-has system_symbol => (
-    is      => 'ro',
-    #TODO: complete this
-);
-has is_forex => (
-    is      => 'ro',
-    #TODO: complete this
-);
-
-=head2 underlying
-=cut
-
-has underlying => (
-    is         => 'ro',
-    lazy_build => 1,
-);
-
-sub _build_underlying {
-    my $self = shift;
-    my $args = {
-        symbol => $self->symbol,
-        ($self->for_date) ? (for_date => $self->for_date) : (),
-    };
-    return BOM::Market::Underlying->new($args);
 }
 
 =head1 METHODS
@@ -1408,14 +1411,14 @@ sub fetch_historical_surface_date {
     my ($self, $args) = @_;
     my $back_to = $args->{back_to} || 1;
 
-    my $vdoc = BOM::System::Chronicle::get('volatility_surfaces', $self->symbol);
+    my $vdoc = $self->chronicle_reader->get('volatility_surfaces', $self->symbol);
     my $current_date = $vdoc->{date};
 
     my @dates;
     push @dates, $current_date;
 
     for (2 .. $back_to) {
-        $vdoc = BOM::System::Chronicle::get_for('volatility_surfaces', $self->symbol, Date::Utility->new($current_date)->epoch - 1);
+        $vdoc = $self->chronicle_reader->get_for('volatility_surfaces', $self->symbol, Date::Utility->new($current_date)->epoch - 1);
 
         last if not $vdoc or not %{$vdoc};
 
@@ -1438,7 +1441,7 @@ sub is_valid {
 
     # This should not die.
     try {
-        BOM::MarketData::VolSurface::Validator->new->validate_surface($self);
+        Quant::Framework::VolSurface::Validator->new->validate_surface($self);
         $err = 'Surface has smile flags: ' . $self->get_smile_flags
             if $self->get_smile_flags;
     }
@@ -1463,7 +1466,7 @@ sub get_existing_surface {
     # existing surface will return you the original surface and not the cut surface
     return $self->_new_surface
         ? $self->new({
-            underlying => $self->underlying,
+            underlying_config => $self->underlying_config,
             cutoff     => $self->cutoff
         })
         : $self;

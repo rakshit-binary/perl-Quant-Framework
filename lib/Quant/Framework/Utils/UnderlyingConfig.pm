@@ -2,7 +2,7 @@ package Quant::Framework::Utils::Symbol;
 
 =head1 NAME
 
-Quatn::Framework::Utils::Symbol
+Quant::Framework::Utils::Symbol
 
 =head1 DESCRIPTION
 
@@ -66,6 +66,16 @@ has volatility_surface_type => (
     isa     => 'Str',
 );
 
+has exchange_name => (
+    is      => 'ro',
+    isa     => 'Str',
+);
+
+has locale => (
+    is      => 'ro',
+    isa     => 'Str',
+);
+
 has uses_implied_rate => (
     is      => 'ro',
     isa     => 'Bool',
@@ -86,7 +96,6 @@ has quoted_currency => (
 );
 
 has extra_vol_diff_by_delta => ...
-
 has market_convention => (
     is      => 'ro',
     isa     => 'HashRef',

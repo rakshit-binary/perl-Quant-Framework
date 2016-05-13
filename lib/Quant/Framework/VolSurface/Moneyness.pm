@@ -1,8 +1,8 @@
-package BOM::MarketData::VolSurface::Moneyness;
+package Quant::Framework::VolSurface::Moneyness;
 
 =head1 NAME
 
-BOM::MarketData::VolSurface::Moneyness
+Quant::Framework::VolSurface::Moneyness
 
 =head1 DESCRIPTION
 
@@ -11,12 +11,10 @@ Base class for strike-based volatility surfaces by moneyness.
 =cut
 
 use Moose;
-extends 'BOM::MarketData::VolSurface';
+extends 'Quant::Framework::VolSurface';
 
 use Date::Utility;
-use BOM::Platform::Runtime;
 use VolSurface::Utils qw(get_delta_for_strike get_strike_for_moneyness);
-use BOM::System::Chronicle;
 
 use Try::Tiny;
 use Math::Function::Interpolator;
@@ -45,10 +43,10 @@ has document => (
 sub _build_document {
     my $self = shift;
 
-    my $document = BOM::System::Chronicle::get('volatility_surfaces', $self->symbol);
+    my $document = $self->chronicle_reader->get('volatility_surfaces', $self->symbol);
 
     if ($self->for_date and $self->for_date->epoch < Date::Utility->new($document->{date})->epoch) {
-        $document = BOM::System::Chronicle::get_for('volatility_surfaces', $self->symbol, $self->for_date->epoch);
+        $document = $self->chronicle_reader->get_for('volatility_surfaces', $self->symbol, $self->for_date->epoch);
 
         # This works around a problem with Volatility surfaces and negative dates to expiry.
         # We have to use the oldest available surface.. and we don't really know when it
@@ -64,13 +62,13 @@ sub save {
     my $self = shift;
 
     #if chronicle does not have this document, first create it because in document_content we will need it
-    if (not defined BOM::System::Chronicle::get('volatility_surfaces', $self->symbol)) {
+    if (not defined $self->chronicle_reader->get('volatility_surfaces', $self->symbol)) {
         #Due to some strange coding of retrieval for recorded_date, there MUST be an existing document (even empty)
         #before one can save a document. As a result, upon the very first storage of an instance of the document, we need to create an empty one.
-        BOM::System::Chronicle::set('volatility_surfaces', $self->symbol, {});
+        $self->chronicle_writer->set('volatility_surfaces', $self->symbol, {});
     }
 
-    return BOM::System::Chronicle::set('volatility_surfaces', $self->symbol, $self->_document_content, $self->recorded_date);
+    return $self->chronicle_writer->set('volatility_surfaces', $self->symbol, $self->_document_content, $self->recorded_date);
 }
 
 sub _document_content {
@@ -184,7 +182,7 @@ sub get_volatility {
     }
 
     $args->{days} =
-        ($self->underlying->submarket->name eq 'random_daily')
+        ($self->underlying_config->submarket_name eq 'random_daily')
         ? 2 / 86400
         : $self->_convert_expiry_to_day($args);
 
@@ -329,17 +327,18 @@ sub _convert_moneyness_smile_to_delta {
 sub _convert_strike_to_delta {
     my ($self, $args) = @_;
     my ($days, $vol, $strike) = @{$args}{'days', 'vol', 'strike'};
-    my $tiy        = $days / 365;
-    my $underlying = $self->underlying;
+    my $tiy = $days / 365;
+    my $builder = $self->builder;
+
 
     return 100 * get_delta_for_strike({
         strike           => $strike,
         atm_vol          => $vol,
         t                => $tiy,
         spot             => $self->spot_reference,
-        r_rate           => $underlying->interest_rate_for($tiy),
-        q_rate           => $underlying->dividend_rate_for($tiy),
-        premium_adjusted => $underlying->market_convention->{delta_premium_adjusted},
+        r_rate           => $builder->interest_rate_for($tiy),
+        q_rate           => $builder->dividend_rate_for($tiy),
+        premium_adjusted => $builder->market_convention->{delta_premium_adjusted},
     });
 }
 
@@ -360,7 +359,7 @@ USAGE:
     cutoff  => $my_new_cutoff,
   });
 
-Returns a new BOM::MarketData::VolSurface instance. You can pass overrides to override an attribute value as it is on the original surface.
+Returns a new Quant::Framework::VolSurface instance. You can pass overrides to override an attribute value as it is on the original surface.
 
 =cut
 
@@ -372,8 +371,8 @@ sub clone {
 
     $clone_args{spot_reference} = $self->spot_reference
         if (not exists $clone_args{spot_reference});
-    $clone_args{underlying} = $self->underlying
-        if (not exists $clone_args{underlying});
+    $clone_args{underlying_config} = $self->underlying_config
+        if (not exists $clone_args{underlying_config});
     $clone_args{cutoff} = $self->cutoff
         if (not exists $clone_args{cutoff});
 
@@ -401,7 +400,7 @@ default to closing on the underlying.
 
 has cutoff => (
     is         => 'ro',
-    isa        => 'bom_cutoff_helper',
+    isa        => 'qf_cutoff_helper',
     lazy_build => 1,
     coerce     => 1,
 );
@@ -411,7 +410,7 @@ sub _build_cutoff {
 
     my $date = $self->for_date ? $self->for_date : Date::Utility->new;
 
-    return BOM::MarketData::VolSurface::Cutoff->new('UTC ' . $self->underlying->calendar->standard_closing_on($date)->time_hhmm);
+    return Quant::Framework::VolSurface::Cutoff->new('UTC ' . $self->calendar->standard_closing_on($date)->time_hhmm);
 }
 
 no Moose;

@@ -33,6 +33,39 @@ has underlying_config => (
     isa     => 'Quant::Framework::Utils::UnderlyingConfig',
 );
 
+sub build_expiry_conventions {
+    my $self = shift;
+
+    my $quoted_currency = Quant::Framework::Currency->new({
+            symbol           => $self->underlying_config->quoted_currency->symbol,
+            for_date         => $self->for_date,
+            chronicle_reader => $self->chronicle_reader,
+            chronicle_writer => $self->chronicle_writer,
+        });
+
+    return Quant::Framework::ExpiryConventions->new({
+            chronicle_reader => $self->chronicle_reader,
+            is_forex_market  => $self->underlying_config->market_name eq 'forex',
+            symbol           => $self->underlying_config->symbol,
+            for_date         => $self->for_date,
+            asset            => $self->build_asset,
+            quoted_currency  => $quoted_currency,
+            asset_symbol     => $self->underlying_config->asset->symbol,
+            calendar         => $self->build_trading_calendar,
+        });
+}
+
+sub build_trading_calendar {
+    my $self = shift;
+
+    return Quant::Framework::TradingCalendar->new({
+            symbol => $self->underlying_config->exchange_name,
+            chronicle_reader => $self->chronicle_reader,
+            $self->underlying_config->locale ? locale => $self->underlying_config->locale:(),
+            for_date => $self->for_date
+        });
+}
+
 sub build_dividend {
     my $self = shift;
 
