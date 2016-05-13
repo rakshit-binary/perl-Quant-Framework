@@ -95,7 +95,10 @@ has quoted_currency => (
     isa     => 'Quant::Framework::Utils::UnderlyingConfig',
 );
 
-has extra_vol_diff_by_delta => ...
+has extra_vol_diff_by_delta => (
+    is      => 'ro',
+);
+
 has market_convention => (
     is      => 'ro',
     isa     => 'HashRef',

@@ -1,14 +1,15 @@
-package BOM::MarketData::VolSurface::Flat;
+package Quant::Framework::VolSurface::Flat;
 
 use feature 'state';
 
 use Moose;
 use YAML::XS qw(LoadFile);
-extends 'BOM::MarketData::VolSurface';
+use File::ShareDir ();
+extends 'Quant::Framework::VolSurface';
 
 =head1 NAME
 
-BOM::MarketData::VolSurface::Flat
+Quant::Framework::VolSurface::Flat
 
 =head1 DESCRIPTION
 
@@ -16,7 +17,7 @@ Represents a flat volatility surface, with vols at all points being the same
 
 =head1 SYNOPSIS
 
-    my $surface = BOM::MarketData::VolSurface::Flat->new({underlying => BOM::Market::Underlying->new('frxUSDJPY')});
+    my $surface = Quanrt::Framework::VolSurface::Flat->new({underlying_config => $cfg1}});
     my $vol     = $surface->get_volatility();
 
 =cut
@@ -29,7 +30,7 @@ Return the surface type
 
 =cut
 
-state $vol = LoadFile('/home/git/regentmarkets/bom-market/config/files/flat_volatility.yml');
+state $vol = LoadFile(File::ShareDir::dist_file('Quant-Framework','flat_volatility.yml');
 
 has '+type' => (
     default => 'flat',
@@ -53,7 +54,7 @@ has flat_vol => (
 
 sub _build_flat_vol {
     my $self = shift;
-    return $vol->{$self->underlying->symbol};
+    return $vol->{$self->symbol};
 }
 
 # a fixed 7% of volatility spread
