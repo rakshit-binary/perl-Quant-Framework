@@ -2,7 +2,7 @@
 corporate_action:
   class_name: 'Quant::Framework::CorporateAction'
   data:
-    symbol: 'FPFP'
+    symbol: 'USAAPL'
     actions:
       80004829: {type: 'DVD_CASH', flag: 'N', description: 'Test Corporate Action', modifier: 'divide', value: 1.234}
 
@@ -98,5 +98,45 @@ asset:
   class_name: 'Quant::Framework::Asset'
   data:
     symbol: UKTSCO
+
+correlation_matrix:
+  class_name: 'Quant::Framework::CorrelationMatrix'
+  data:
+    symbol: indices
+    correlations:
+      FCHI:
+        GBP:
+          3M: 0.356
+          6M: 0.336
+          9M: 0.32
+          12M: 0.307
+        USD:
+          3M: 0.554
+          6M: 0.538
+          9M: 0.525
+          12M: 0.516
+      FTSE:
+        GBP:
+          3M: 0.356
+          6M: 0.336
+          9M: 0.32
+          12M: 0.307
+        USD:
+          3M: 0.554
+          6M: 0.538
+          9M: 0.525
+          12M: 0.516
+      GDAXI:
+        USD:
+          3M: 0.506
+          6M: 0.49
+          9M: 0.477
+          12M: 0.467
+      SASEIDX:
+        USD:
+          3M: 0.506
+          6M: 0.49
+          9M: 0.477
+          12M: 0.467
 
 
