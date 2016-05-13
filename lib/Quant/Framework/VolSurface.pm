@@ -34,6 +34,9 @@ use Quant::Framework::VolSurface::Utils;
 The symbol of the underlying that this surface is for.
 
 =cut
+has underlying_config => ...
+has calendar => ...
+has builder => ...
 
 has symbol => (
     is       => 'ro',

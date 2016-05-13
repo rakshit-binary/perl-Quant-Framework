@@ -17,7 +17,7 @@ use 5.010;
 
 use Moose;
 
-has symbol_name => (
+has symbol => (
     is      => 'ro',
     isa     => 'Str',
     required=> 1,
@@ -38,9 +38,22 @@ has market_asset_type => (
     isa     => 'Str',
 );
 
+has market_prefer_discrete_dividend => (
+    is      => 'ro',
+);
+
+has quanto_only => (
+    is      => 'ro',
+);
+
 has submarket_name => (
     is      => 'ro',
     isa     => 'Str',
+);
+
+has rate_to_imply_from => (
+    is         => 'ro',
+    isa        => 'Str',
 );
 
 has submarket_asset_type => (
@@ -58,23 +71,29 @@ has uses_implied_rate => (
     isa     => 'Bool',
 );
 
-has spot_price => (
+has spot  => (
     is      => 'ro',
-    isa     => 'Num',
 );
 
-has spot_epoch => (
+has asset => (
     is      => 'ro',
-    isa     => 'Int',
+    isa     => 'Quant::Framework::Utils::UnderlyingConfig',
 );
 
-has asset_symbol => (
+has quoted_currency => (
     is      => 'ro',
-    isa     => 'Quant::Framework::Utils::Symbol',
+    isa     => 'Quant::Framework::Utils::UnderlyingConfig',
 );
 
-has quoted_currency_symbol => (
-    is      => 'ro',
-    isa     => 'Quant::Framework::Utils::Symbol',
-);
+has extra_vol_diff_by_delta => ...
 
+has market_convention => (
+    is      => 'ro',
+    isa     => 'HashRef',
+    default => sub {
+        return {
+            delta_style            => 'spot_delta',
+            delta_premium_adjusted => 0,
+        };
+    },
+);

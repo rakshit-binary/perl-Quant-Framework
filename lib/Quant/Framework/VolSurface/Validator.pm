@@ -35,6 +35,7 @@ use List::MoreUtils qw(indexes any);
 use Date::Utility;
 use VolSurface::Utils qw( get_strike_for_spot_delta );
 use Quant::Framework::VolSurface::Utils;
+use Quant::Framework::Utils::RateHelper;
 
 =head1 METHODS
 
@@ -93,8 +94,7 @@ sub _check_identical_surface {
             return 1 if $existing->surface->{$term}->{smile}->{$point} != $surface->surface->{$term}->{smile}->{$point};
         }
     }
-    #TODO: move quanto_only to surface?
-    if (time - $existing->recorded_date->epoch > 15000 and not $surface->{underlying}->quanto_only) {
+    if (time - $existing->recorded_date->epoch > 15000 and not $surface->{underlying_config}->quanto_only) {
         die('Surface data has not changed since last update [' . $existing->recorded_date->epoch . '].');
     }
     return;
@@ -142,20 +142,21 @@ sub _check_volatility_jump {
 sub _admissible_check {
     my $surface = shift;
 
-    #TODO: add calendar to surface
+    my $underlying_config = $surface->underlying_config;
+    my $builder = $surface->builder;
     my $calendar         = $surface->calendar;
     my $surface_type     = $surface->type;
-    my $S                = ($surface_type eq 'delta') ? $surface->spot : $surface->spot_reference;
-    my $premium_adjusted = $underlying->{market_convention}->{delta_premium_adjusted};
+    my $S                = ($surface_type eq 'delta') ? $underlying_config->spot : $surface->spot_reference;
+    my $premium_adjusted = $underlying_config->{market_convention}->{delta_premium_adjusted};
     my $now              = Date::Utility->new;
 
-    my $utils = BOM::MarketData::VolSurface::Utils->new;
+    my $utils = Quant::Framework::VolSurface::Utils->new;
     foreach my $day (@{$surface->_days_with_smiles}) {
         my $date_expiry = Date::Utility->new(time + $day * 86400);
         $date_expiry = $calendar->trades_on($date_expiry) ? $date_expiry : $calendar->trade_date_after($date_expiry);
         my $adjustment;
-        if ($underlying->market->prefer_discrete_dividend) {
-            $adjustment = $underlying->dividend_adjustments_for_period({
+        if ($underlying_config->market_prefer_discrete_dividend) {
+            $adjustment = $builder->dividend_adjustments_for_period({
                 start => $now,
                 end   => $date_expiry,
             });
@@ -165,8 +166,8 @@ sub _admissible_check {
         # If intraday or not FX, then use the exact duration with fractions of a day.
         die("Invalid tenor[$atid] on surface") if ($atid == 0);
         my $t     = $atid / 365;
-        my $r     = $underlying->interest_rate_for($t);
-        my $q     = ($underlying->market->prefer_discrete_dividend) ? 0 : $underlying->dividend_rate_for($t);
+        my $r     = $builder->interest_rate_for($t);
+        my $q     = ($underlying_config->market_prefer_discrete_dividend) ? 0 : $builder->dividend_rate_for($t);
         my $smile = $surface->surface->{$day}->{smile};
 
         my @volatility_level = sort { $a <=> $b } keys %{$smile};
@@ -202,7 +203,7 @@ sub _admissible_check {
                 $barrier = $vol_level / 100 * $S;
             }
 
-            if ($underlying->market->prefer_discrete_dividend) {
+            if ($underlying_config->market_prefer_discrete_dividend) {
 
                 $barrier += $adjustment->{barrier};
             }
@@ -317,14 +318,14 @@ sub _check_structure {
     my $surface = shift;
 
     my $surface_hashref = $surface->surface;
-    my $system_symbol   = $surface->system_symbol;
+    my $system_symbol   = $surface->underlying_config->system_symbol;
 
     # Somehow I do not know why there is a limit of term on delta surface, but
     # for moneyness we might need at least up to 2 years to get the spread.
     my $type = $surface->type;
     my ($max_term, $diff_smile_point) = $type eq 'delta' ? (380, 30) : (750, 100);
 
-    my $extra_allowed = BOM::Platform::Static::Config::quants->{market_data}->{extra_vol_diff_by_delta} || 0;
+    my $extra_allowed = $surface->underlying_config->extra_vol_diff_by_delta || 0;
     my $max_vol_change_by_delta = 0.4 + $extra_allowed;
 
     my @days = keys %{$surface_hashref};
@@ -410,7 +411,7 @@ sub check_smiles {
     my ($self, $surface) = @_;
 
     foreach my $day (@{$surface->original_term_for_smile}) {
-        $self->check_smile($day, $surface->surface->{$day}->{smile}, $surface->system_symbol);
+        $self->check_smile($day, $surface->surface->{$day}->{smile}, $surface->underlying_config->system_symbol);
     }
 
     return 1;
