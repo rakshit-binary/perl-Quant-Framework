@@ -59,16 +59,6 @@ has display_name => (
     default => sub { return shift->symbol },
 );
 
-=head2 is_OTC
-
-Is this an over the counter exchange?
-
-=cut
-
-has is_OTC => (
-    is      => 'ro',
-    default => 0,
-);
 
 =head2 BUILDARGS
 
