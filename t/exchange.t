@@ -23,16 +23,12 @@ subtest 'exchange currency and OTC check' => sub {
 
         if ($undef_currency_exchanges{$exchange}) {
             ok !$exchanges->{$exchange}->{currency}, "currency undef for $exchange";
-            ok $exchanges->{$exchange}->{is_OTC}, "is OTC for $exchange";
 
             ok !$qf_exchange->currency, "currency undef for $exchange";
-            ok $qf_exchange->is_OTC, "is OTC for $exchange";
         } else {
             ok $exchanges->{$exchange}->{currency}, "currency defined for $exchange";
-            ok !$exchanges->{$exchange}->{is_OTC}, "non OTC for $exchange";
 
             ok $qf_exchange->currency, "currency defined for $exchange";
-            ok !$qf_exchange->is_OTC, "non OTC for $exchange";
         }
     }
 };
