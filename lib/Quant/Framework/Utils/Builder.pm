@@ -186,7 +186,7 @@ sub dividend_rate_for {
         $tiy ||= 0;
         my $asset = $self->build_asset();
 
-        if ($self->underlying_config->asset_symbol->uses_implied_rate) {
+        if ($self->underlying_config->uses_implied_rate_for_asset) {
             $rate = $asset->rate_implied_from($self->rate_to_imply_from, $tiy);
         } else {
             $rate = $asset->rate_for($tiy);
@@ -224,7 +224,7 @@ sub interest_rate_for {
     my $rate;
     if ($zero_rate{$self->underlying_config->market_name}) {
         $rate = 0;
-    } elsif ($self->underlying_config->quoted_currency_symbol->uses_implied_rate) {
+    } elsif ($self->underlying_config->uses_implied_rate_for_quoted_currency) {
         $rate = $quoted_currency->rate_implied_from($self->underlying_config->rate_to_imply_from, $tiy);
     } else {
         $rate = $quoted_currency->rate_for($tiy);

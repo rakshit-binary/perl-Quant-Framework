@@ -156,7 +156,7 @@ Whether this underlying uses implied rate
 
 has uses_implied_rate => (
     is      => 'ro',
-    isa     => 'Bool',
+    isa     => 'Maybe[Bool]',
 );
 
 =head2 spot
@@ -180,6 +180,17 @@ has asset_symbol => (
     isa     => 'Str',
 );
 
+=head2 uses_implied_rate_for_asset
+
+Can we use implied rate from asset symbol?
+
+=cut
+
+has uses_implied_rate_for_asset => (
+    is      => 'ro',
+    isa     => 'Str',
+);
+
 =head2 quoted_currency_symbol
 
 Quoted currency of the underlying
@@ -187,6 +198,17 @@ Quoted currency of the underlying
 =cut
 
 has quoted_currency_symbol => (
+    is      => 'ro',
+    isa     => 'Str',
+);
+
+=head2 uses_implied_rate_for_quoted_currency
+
+Can we use implied rate from quoted currency symbol?
+
+=cut
+
+has uses_implied_rate_for_quoted_currency => (
     is      => 'ro',
     isa     => 'Str',
 );
