@@ -18,20 +18,44 @@ has for_date => (
     default => undef,
 );
 
+=head2 chronicle_reader
+
+Instance of Data::Chronicle::Reader for reading data
+
+=cut
+
 has chronicle_reader => (
     is      => 'ro',
     isa     => 'Data::Chronicle::Reader',
 );
+
+=head2 chronicle_writer
+
+Isntance of Data::Chronicle::Writer to write data to
+
+=cut
 
 has chronicle_writer => (
     is      => 'ro',
     isa     => 'Data::Chronicle::Writer',
 );
 
+=head2 underlying_config
+
+UnderlyingConfig used to create/initialize Q::F modules
+
+=cut
+
 has underlying_config => (
     is      => 'ro',
     isa     => 'Quant::Framework::Utils::UnderlyingConfig',
 );
+
+=head2 build_expiry_conventions
+
+Creates a default instance of ExpiryConventions according to current parameters (chronicle, for_date, underlying_config)
+
+=cut
 
 sub build_expiry_conventions {
     my $self = shift;
@@ -55,16 +79,29 @@ sub build_expiry_conventions {
         });
 }
 
+=head2 build_trading_calendar
+
+Creates a default instance of TradingCalendar according to current parameters (chronicle, for_date, underlying_config)
+
+=cut
+
 sub build_trading_calendar {
     my $self = shift;
 
     return Quant::Framework::TradingCalendar->new({
             symbol => $self->underlying_config->exchange_name,
             chronicle_reader => $self->chronicle_reader,
-            $self->underlying_config->locale ? locale => $self->underlying_config->locale:(),
+            (($self->underlying_config->locale) ? (locale => $self->underlying_config->locale) :()),
             for_date => $self->for_date
         });
 }
+
+
+=head2 build_dividend
+
+Creates a default instance of Dividend according to current parameters (chronicle, for_date, underlying_config)
+
+=cut
 
 sub build_dividend {
     my $self = shift;
@@ -76,6 +113,13 @@ sub build_dividend {
             chronicle_writer => $self->chronicle_w,
         });
 }
+
+=head2 build_asset
+
+Creates a default instance of Asset according to current parameters (chronicle, for_date, underlying_config)
+
+=cut
+
 
 sub build_asset {
     my $self = shift;
@@ -95,7 +139,15 @@ sub build_asset {
     });
 }
 
+=head2 build_currency
+
+Creates a default instance of Currency according to current parameters (chronicle, for_date, underlying_config)
+
+=cut
+
 sub build_currency {
+    my $self = shift;
+
     return Quant::Framework::Currency->new({
         symbol           => $self->underlying_config->asset_symbol,
         for_date         => $self->for_date,
@@ -177,6 +229,12 @@ sub interest_rate_for {
     return $rate;
 }
 
+=head2 get_discrete_dividend_for_period
+
+Returns discrete dividend for the given (start,end) dates
+
+=cut
+
 sub get_discrete_dividend_for_period {
     my ($self, $args) = @_;
 
@@ -203,6 +261,12 @@ sub get_discrete_dividend_for_period {
 
     return \%valid_dividends;
 }
+
+=head2 dividend_adjustments_for_period
+
+Returns dividend adjustments for given start/end period
+
+=cut
 
 sub dividend_adjustments_for_period {
     my ($self, $args) = @_;
@@ -236,3 +300,4 @@ sub dividend_adjustments_for_period {
     };
 }
 
+1;
