@@ -169,26 +169,26 @@ has spot  => (
     is      => 'ro',
 );
 
-=head2 asset
+=head2 asset_symbol
 
-UnderlyingConfig of the asset of this underlying
+Symbol name of the asset (Asset or Currency)
 
 =cut
 
-has asset => (
+has asset_symbol => (
     is      => 'ro',
-    isa     => 'Quant::Framework::Utils::UnderlyingConfig',
+    isa     => 'Str',
 );
 
-=head2 quoted_currency
+=head2 quoted_currency_symbol
 
 Quoted currency of the underlying
 
 =cut
 
-has quoted_currency => (
+has quoted_currency_symbol => (
     is      => 'ro',
-    isa     => 'Quant::Framework::Utils::UnderlyingConfig',
+    isa     => 'Str',
 );
 
 =head2 extra_vol_diff_by_delta
