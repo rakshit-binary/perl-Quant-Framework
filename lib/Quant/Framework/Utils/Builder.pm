@@ -187,7 +187,7 @@ sub dividend_rate_for {
         my $asset = $self->build_asset();
 
         if ($self->underlying_config->uses_implied_rate_for_asset) {
-            $rate = $asset->rate_implied_from($self->rate_to_imply_from, $tiy);
+            $rate = $asset->rate_implied_from($self->underlying_config->rate_to_imply_from, $tiy);
         } else {
             $rate = $asset->rate_for($tiy);
         }
