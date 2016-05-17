@@ -109,8 +109,8 @@ sub build_dividend {
     return Quant::Framework::Dividend->new({
             symbol  => $self->underlying_config->symbol,
             for_date => $self->for_date,
-            chronicle_reader => $self->chronicle_r,
-            chronicle_writer => $self->chronicle_w,
+            chronicle_reader => $self->chronicle_reader,
+            chronicle_writer => $self->chronicle_writer,
         });
 }
 
@@ -134,8 +134,8 @@ sub build_asset {
     return $which->new({
         symbol           => $self->underlying_config->asset_symbol,
         for_date         => $self->for_date,
-        chronicle_reader => $self->chronicle_r,
-        chronicle_writer => $self->chronicle_w,
+        chronicle_reader => $self->chronicle_reader,
+        chronicle_writer => $self->chronicle_writer,
     });
 }
 
@@ -151,8 +151,8 @@ sub build_currency {
     return Quant::Framework::Currency->new({
         symbol           => $self->underlying_config->asset_symbol,
         for_date         => $self->for_date,
-        chronicle_reader => $self->chronicle_r,
-        chronicle_writer => $self->chronicle_w,
+        chronicle_reader => $self->chronicle_reader,
+        chronicle_writer => $self->chronicle_writer,
     });
 }
 
