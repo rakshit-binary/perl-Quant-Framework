@@ -6,3 +6,5 @@ Revision history for Quant-Framework
         Fixing some unit-tests
 0.11    12 May 2016
         Adding CorrelationMatrix and ExpiryConventions modules
+0.16    18 May 2016
+        Adding Builder and UnderlyingConfig
