@@ -355,7 +355,6 @@ EURONEXT:
 FOREX:
   delay_amount: '0'
   display_name: Forex
-  is_OTC: 1
   market_times:
     partial_trading: {}
     standard:
@@ -828,7 +827,6 @@ OSLO:
 RANDOM:
   delay_amount: '0'
   display_name: Randoms
-  is_OTC: 1
   market_times:
     partial_trading: {}
     standard:
@@ -841,7 +839,6 @@ RANDOM:
 RANDOM_NOCTURNE:
   delay_amount: '0'
   display_name: Nocturnal Randoms
-  is_OTC: 1
   market_times:
     partial_trading: {}
     standard:

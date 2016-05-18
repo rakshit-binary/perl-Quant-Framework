@@ -18,7 +18,7 @@ my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
 
 subtest 'general' => sub {
     plan tests => 5;
-    lives_ok { Quant::Framework::CorporateAction->new(symbol => 'FPFP',
+    lives_ok { Quant::Framework::CorporateAction->new(symbol => 'USAAPL',
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w) } 'creates corporate action object with symbol';
     throws_ok { Quant::Framework::CorporateAction->new } qr/Attribute \(symbol\) is required/, 'throws exception if symbol is not provided';
@@ -41,7 +41,7 @@ subtest 'save new corporate actions' => sub {
     plan tests => 7;
     my $now = Date::Utility->new;
     lives_ok {
-        my $corp = Quant::Framework::CorporateAction->new(symbol => 'FPFP',
+        my $corp = Quant::Framework::CorporateAction->new(symbol => 'USAAPL',
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w);
         my $actions = $corp->actions;
@@ -55,14 +55,14 @@ subtest 'save new corporate actions' => sub {
                 flag           => 'N'
             }};
         my $new_corp = Quant::Framework::CorporateAction->new(
-            symbol        => 'FPFP',
+            symbol        => 'USAAPL',
             actions       => $new_actions,
             recorded_date => $now,
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w,
         );
         ok $new_corp->save, 'saves new action';
-        my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'FPFP',
+        my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'USAAPL',
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w);
         my $new_actions_from_db = $after_save_corp->actions;
@@ -80,14 +80,14 @@ subtest 'save new corporate actions' => sub {
                 flag           => 'N'
             }};
         my $no_dup_corp = Quant::Framework::CorporateAction->new(
-            symbol        => 'FPFP',
+            symbol        => 'USAAPL',
             actions       => $new_actions,
             recorded_date => $now,
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w,
         );
         ok $no_dup_corp->save, 'try to save duplicate action';
-        my $after_save = Quant::Framework::CorporateAction->new(symbol => 'FPFP',
+        my $after_save = Quant::Framework::CorporateAction->new(symbol => 'USAAPL',
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w);
 
@@ -111,14 +111,14 @@ subtest 'update existing corporate actions' => sub {
                 flag           => 'U'
             }};
         my $new_corp = Quant::Framework::CorporateAction->new(
-            symbol        => 'FPFP',
+            symbol        => 'USAAPL',
             actions       => $new_actions,
             recorded_date => $now,
         chronicle_reader => $chronicle_r,
         chronicle_writer => $chronicle_w
         );
         ok $new_corp->save, 'saves new action';
-        my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'FPFP',
+        my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'USAAPL',
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w);
 
@@ -145,14 +145,14 @@ subtest 'cancel existing corporate actions' => sub {
                 flag           => 'D'
             }};
         my $new_corp = Quant::Framework::CorporateAction->new(
-            symbol        => 'FPFP',
+            symbol        => 'USAAPL',
             actions       => $new_actions,
             recorded_date => $now,
         chronicle_reader => $chronicle_r,
         chronicle_writer => $chronicle_w
         );
         ok $new_corp->save, 'saves new action';
-        my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'FPFP',
+        my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'USAAPL',
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w);
         my $new_actions_from_db = $after_save_corp->actions;
@@ -176,14 +176,14 @@ subtest 'save critical actions' => sub {
                 flag            => 'N'
             }};
         my $new_corp = Quant::Framework::CorporateAction->new(
-            symbol        => 'FPFP',
+            symbol        => 'USAAPL',
             actions       => $new_actions,
             recorded_date => $now,
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w
         );
         ok $new_corp->save, 'saves critical action';
-        my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'FPFP',
+        my $after_save_corp = Quant::Framework::CorporateAction->new(symbol => 'USAAPL',
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w);
 

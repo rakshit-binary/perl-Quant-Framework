@@ -38,6 +38,7 @@ use Date::Utility;
 use Memoize::HashKey::Ignore;
 use Time::Duration::Concise;
 use YAML::XS qw(LoadFile);
+use Clone qw(clone);
 
 # We're going to do this from time to time.
 # I claim it's under control.
@@ -64,7 +65,7 @@ localization language (default is 'en')
 =cut
 
 has locale => (
-    is  => 'ro',
+    is      => 'ro',
     default => 'EN'
 );
 
@@ -75,8 +76,8 @@ Used to work with Chronicle storage data (Holidays and Partial trading data)
 =cut
 
 has chronicle_reader => (
-    is      => 'ro',
-    isa     => 'Data::Chronicle::Reader',
+    is  => 'ro',
+    isa => 'Data::Chronicle::Reader',
 );
 
 =head2 for_date
@@ -105,7 +106,7 @@ has holidays => (
 sub _build_holidays {
     my $self = shift;
 
-    my $ref               = Quant::Framework::Holiday::get_holidays_for($self->chronicle_reader, $self->symbol, $self->for_date);
+    my $ref = Quant::Framework::Holiday::get_holidays_for($self->chronicle_reader, $self->symbol, $self->for_date);
     my %exchange_holidays = map { Date::Utility->new($_)->days_since_epoch => $ref->{$_} } keys %$ref;
 
     return \%exchange_holidays;
@@ -145,7 +146,8 @@ sub _build_early_closes {
 
     my $ref = Quant::Framework::PartialTrading->new({
             chronicle_reader => $self->chronicle_reader,
-            type             => 'early_closes'})->get_partial_trading_for($self->symbol, $self->for_date);
+            type             => 'early_closes'
+        })->get_partial_trading_for($self->symbol, $self->for_date);
     my %early_closes = map { Date::Utility->new($_)->days_since_epoch => $ref->{$_} } keys %$ref;
 
     return \%early_closes;
@@ -156,7 +158,8 @@ sub _build_late_opens {
 
     my $ref = Quant::Framework::PartialTrading->new({
             chronicle_reader => $self->chronicle_reader,
-            type             => 'late_opens'})->get_partial_trading_for($self->symbol, $self->for_date);
+            type             => 'late_opens'
+        })->get_partial_trading_for($self->symbol, $self->for_date);
     my %late_opens = map { Date::Utility->new($_)->days_since_epoch => $ref->{$_} } keys %$ref;
 
     return \%late_opens;
@@ -201,13 +204,18 @@ has trading_days_list => (
     lazy_build => 1,
 );
 
+my $trading_days_aliases;
+
+BEGIN {
+    $trading_days_aliases = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchanges_trading_days_aliases.yml'));
+}
+
 sub _build_trading_days_list {
-    state $trading_days_aliases = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchanges_trading_days_aliases.yml'));
 
     my $self = shift;
     return \@{$trading_days_aliases->{$self->trading_days}};
 
-    }
+}
 
 =head2 trading_timezone
 
@@ -229,14 +237,20 @@ Internal method to pre-process construction arguments
 
 =cut
 
+my $exchanges;
+
+BEGIN {
+    $exchanges = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml'));
+}
+
 sub BUILDARGS {
     my ($class, $symbol, $chronicle_r, $locale, $for_date) = @_;
 
     croak "Exchange symbol must be specified" unless $symbol;
-    my $params_ref = YAML::XS::LoadFile(File::ShareDir::dist_file('Quant-Framework', 'exchange.yml'))->{$symbol};
-    $params_ref->{symbol} = $symbol;
-    $params_ref->{for_date} = $for_date if $for_date;
-    $params_ref->{locale} = $locale if $locale;
+    my $params_ref = clone($exchanges->{$symbol});
+    $params_ref->{symbol}           = $symbol;
+    $params_ref->{for_date}         = $for_date if $for_date;
+    $params_ref->{locale}           = $locale if $locale;
     $params_ref->{chronicle_reader} = $chronicle_r;
 
     foreach my $key (keys %{$params_ref->{market_times}}) {
