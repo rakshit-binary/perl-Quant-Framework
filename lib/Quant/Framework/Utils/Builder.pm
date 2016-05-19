@@ -31,7 +31,7 @@ has chronicle_reader => (
 
 =head2 chronicle_writer
 
-Isntance of Data::Chronicle::Writer to write data to
+Instance of Data::Chronicle::Writer to write data to
 
 =cut
 
@@ -116,7 +116,7 @@ sub build_dividend {
 
 =head2 build_asset
 
-Creates a default instance of Asset according to current parameters (chronicle, for_date, underlying_config)
+Creates a default instance of Asset/Currency according to current parameters (chronicle, for_date, underlying_config)
 
 =cut
 
@@ -218,7 +218,7 @@ sub interest_rate_for {
 
 =head2 get_discrete_dividend_for_period
 
-Returns discrete dividend for the given (start,end) dates
+Returns discrete dividend for the given (start,end) dates for the underlying specified using `underlying_config`
 
 =cut
 
