@@ -12,7 +12,7 @@ before_install:
     - build-perl
     - perl -V
     - "cpanm -n File::ShareDir::Install"
-    - "cpanm -n -v --installdeps ."
+    - "cpanm -n --installdeps ."
     - "cpanm -n Moose"
     - "cpanm -n Date::Utility" 
     - "cpanm -n Data::Chronicle::Reader"
