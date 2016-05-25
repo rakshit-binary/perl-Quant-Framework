@@ -27,5 +27,6 @@ before_install:
     - "cpanm -n Memoize"
     - "cpanm -n Memoize::HashKey::Ignore"
     - "cpanm -n Time::Duration::Concise"
+    - "cpanm -n MooseX::Types::Moose"
 script:
   perl Makefile.PL && RELEASE_TESTING=1 make test
