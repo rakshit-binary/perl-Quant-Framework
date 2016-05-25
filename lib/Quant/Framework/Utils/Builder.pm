@@ -31,7 +31,7 @@ has chronicle_reader => (
 
 =head2 chronicle_writer
 
-Isntance of Data::Chronicle::Writer to write data to
+Instance of Data::Chronicle::Writer to write data to
 
 =cut
 
@@ -116,7 +116,7 @@ sub build_dividend {
 
 =head2 build_asset
 
-Creates a default instance of Asset according to current parameters (chronicle, for_date, underlying_config)
+Creates a default instance of Asset/Currency according to current parameters (chronicle, for_date, underlying_config)
 
 =cut
 
@@ -125,10 +125,8 @@ sub build_asset {
     my $self = shift;
 
     return unless $self->underlying_config->asset_symbol;
-    my $type =
-          $self->underlying_config->submarket_asset_type eq 'currency'
-        ? $self->underlying_config->submarket_asset_type
-        : $self->underlying_config->market_asset_type;
+    my $type = $self->underlying_config->asset_class;
+
     my $which = $type eq 'currency' ? 'Quant::Framework::Currency' : 'Quant::Framework::Asset';
 
     return $which->new({
@@ -165,33 +163,23 @@ Get the dividend rate for this underlying over a given time period (expressed in
 sub dividend_rate_for {
     my ($self, $tiy) = @_;
 
-    die 'Attempting to get interest rate on an undefined currency for ' . $self->underlying_config->symbol
+    die 'Attempting to get dividend rate on an undefined asset symbol for ' . $self->underlying_config->symbol
         unless (defined $self->underlying_config->asset_symbol);
 
-    my %zero_rate = (
-        smart_fx  => 1,
-        smart_opi => 1,
-    );
+    return $self->underlying_config->default_dividend_rate if defined $self->underlying_config->default_dividend_rate;
 
     my $rate;
 
-    if ($self->underlying_config->market_name eq 'volidx') {
-        my $div = $self->build_dividend();
-        my @rates = values %{$div->rates};
-        $rate = pop @rates;
-    } elsif ($zero_rate{$self->underlying_config->submarket_name}) {
-        $rate = 0;
-    } else {
-        # timeinyears cannot be undef
-        $tiy ||= 0;
-        my $asset = $self->build_asset();
+    # timeinyears cannot be undef
+    $tiy ||= 0;
+    my $asset = $self->build_asset();
 
-        if ($self->underlying_config->uses_implied_rate_for_asset) {
-            $rate = $asset->rate_implied_from($self->underlying_config->rate_to_imply_from, $tiy);
-        } else {
-            $rate = $asset->rate_for($tiy);
-        }
+    if ($self->underlying_config->uses_implied_rate_for_asset) {
+        $rate = $asset->rate_implied_from($self->underlying_config->rate_to_imply_from, $tiy);
+    } else {
+        $rate = $asset->rate_for($tiy);
     }
+
     return $rate;
 }
 
@@ -209,10 +197,7 @@ sub interest_rate_for {
     # timeinyears cannot be undef
     $tiy ||= 0;
 
-    # list of markets that have zero rate
-    my %zero_rate = (
-        volidx => 1,
-    );
+    return $self->underlying_config->default_interest_rate if defined $self->underlying_config->default_interest_rate;
 
     my $quoted_currency = Quant::Framework::Currency->new({
             symbol           => $self->underlying_config->quoted_currency_symbol,
@@ -222,9 +207,7 @@ sub interest_rate_for {
         });
 
     my $rate;
-    if ($zero_rate{$self->underlying_config->market_name}) {
-        $rate = 0;
-    } elsif ($self->underlying_config->uses_implied_rate_for_quoted_currency) {
+    if ($self->underlying_config->uses_implied_rate_for_quoted_currency) {
         $rate = $quoted_currency->rate_implied_from($self->underlying_config->rate_to_imply_from, $tiy);
     } else {
         $rate = $quoted_currency->rate_for($tiy);
@@ -235,7 +218,7 @@ sub interest_rate_for {
 
 =head2 get_discrete_dividend_for_period
 
-Returns discrete dividend for the given (start,end) dates
+Returns discrete dividend for the given (start,end) dates for the underlying specified using `underlying_config`
 
 =cut
 
