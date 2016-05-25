@@ -11,6 +11,7 @@ before_install:
     - source ~/travis-perl-helpers/init
     - build-perl
     - perl -V
+    - "cpanm -n File::ShareDir::Install"
     - "cpanm -n -v --installdeps ."
     - "cpanm -n Moose"
     - "cpanm -n Date::Utility" 
