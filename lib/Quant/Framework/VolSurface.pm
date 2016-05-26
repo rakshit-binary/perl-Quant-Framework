@@ -23,6 +23,7 @@ use Number::Closest::XS qw(find_closest_numbers_around);
 use Math::Function::Interpolator;
 
 use Format::Util::Numbers qw( roundnear );
+use Quant::Framework::Utils::Types;
 use Quant::Framework::VolSurface::Cutoff;
 use Quant::Framework::VolSurface::Validator;
 use Quant::Framework::VolSurface::Utils;
@@ -34,24 +35,24 @@ has for_date => (
 );
 
 has chronicle_reader => (
-    is      => 'ro',
-    isa     => 'Data::Chronicle::Reader',
+    is  => 'ro',
+    isa => 'Data::Chronicle::Reader',
 );
 
 has chronicle_writer => (
-    is      => 'ro',
-    isa     => 'Data::Chronicle::Writer',
+    is  => 'ro',
+    isa => 'Data::Chronicle::Writer',
 );
 
 has underlying_config => (
-    is      => 'ro',
-    isa     => 'Quant::Framework::Utils::UnderlyingConfig',
+    is  => 'ro',
+    isa => 'Quant::Framework::Utils::UnderlyingConfig',
 );
 
 has calendar => (
-    is          => 'ro',
-    isa         => 'Quant::Framework::TradingCalendar',
-    lazy_build  => 1,
+    is         => 'ro',
+    isa        => 'Quant::Framework::TradingCalendar',
+    lazy_build => 1,
 );
 
 sub _build_calendar {
@@ -61,20 +62,19 @@ sub _build_calendar {
 }
 
 has builder => (
-    is          => 'ro',
-    isa         => 'Quant::Framework::Utils::Builder'
-    lazy_build  => 1,
+    is  => 'ro',
+    isa => 'Quant::Framework::Utils::Builder' lazy_build => 1,
 );
 
 sub _build_builder {
     my $self = shift;
 
     return Quant::Framework::Utils::Bulder->new({
-            for_date => $self->for_date,
-            chronicle_reader => $self->chronicle_reader,
-            chronicle_writer => $self->chronicle_writer,
-            undeerlying_config => $self->underlying_config,
-        });
+        for_date           => $self->for_date,
+        chronicle_reader   => $self->chronicle_reader,
+        chronicle_writer   => $self->chronicle_writer,
+        underlying_config => $self->underlying_config,
+    });
 }
 
 =head1 ATTRIBUTES
@@ -98,7 +98,7 @@ has _market_name => (
 );
 
 sub _build__market_name {
-    return shift->underlying_config->market_name;
+    return shift->underlying->market->name;
 }
 
 =head2 recorded_date
@@ -117,7 +117,7 @@ sub _build_recorded_date {
     my $self          = shift;
     my $recorded_date = Date::Utility->new($self->document->{date});
 
-    if (scalar grep { $self->type eq $_ } (qw(flat phased))) {
+    if ($self->type eq 'flat') {
         $recorded_date = $self->for_date // Date::Utility->new;
     }
 
@@ -126,7 +126,7 @@ sub _build_recorded_date {
 
 =head2 type
 
-Type of the surface, delta, moneyness etc.
+Type of the surface, delta, moneyness or flat.
 
 =cut
 
@@ -156,6 +156,12 @@ sub _build_surface {
     my $self = shift;
     return $self->document->{surfaces}->{$self->cutoff->code};
 }
+
+=head2 default_vol_spread
+
+This will return default volatility spread (difference between ask and bid for atm volatility).
+
+=cut
 
 has default_vol_spread => (
     is         => 'ro',
@@ -198,6 +204,12 @@ sub _build_smile_points {
 
     return \@smile_points;
 }
+
+=head2 spread_points
+
+This will give an array-reference containing volatility spreads for first tenor which has a volatility spread (or ATM if none).
+=cut
+
 has spread_points => (
     is         => 'ro',
     isa        => 'ArrayRef',
@@ -266,7 +278,6 @@ sub _build_term_by_day {
 =head2 original_term
 
 The terms we were originally supplied for this surface.
-The reason why the terms for spread and smile is separated is because of data error from Bloomberg.
 
 =cut
 
@@ -428,7 +439,7 @@ has _calendar => (
 );
 
 sub _build__calendar {
-    return $self->builder->build_calendar;
+    return shift->underlying->calendar;
 }
 
 has _ON_day => (
@@ -450,10 +461,10 @@ around BUILDARGS => sub {
     my %day_for_tenor;
 
     my $underlying_config = $args{underlying_config};
-    if (ref $underlyin_config
+    if (ref $underlying_config
         and $underlying_config->isa('Quant::Framework::Utils::UnderlyingConfig'))
     {
-        $args{symbol} = $underlying_config->system_symbol;
+        $args{symbol} = $underlying->system_symbol;
         #TODO: we won't store for_date in UnderlyingConfig so make sure
         #we are passing it everywhere we create a vol-surface
     }
@@ -475,11 +486,11 @@ around BUILDARGS => sub {
                 $effective_date ||= Quant::Framework::VolSurface::Utils->new->effective_date_for($args{recorded_date});
 
                 my $builder = Quant::Framework::Utils::Builder->new({
-                        for_date => $args->{for_date},
-                        chronicle_reader => $args->{chronicle_reader},
-                        chronicle_writer => $args->{chronicle_writer},
-                        undeerlying_config => $args->{underlying_config},
-                    });
+                    for_date           => $args->{for_date},
+                    chronicle_reader   => $args->{chronicle_reader},
+                    chronicle_writer   => $args->{chronicle_writer},
+                    underlying_config => $args->{underlying_config},
+                });
 
                 my $expiry_conventions = $builder->build_expiry_conventions;
 
@@ -526,6 +537,8 @@ sub _is_tenor {
 }
 
 =head2 get_spread
+
+Spread is ask-bid difference which can be stored for different tenor and atm/max.
 
 USAGE:
 
@@ -607,17 +620,17 @@ sub get_smile_spread {
             if ($day < 30 and grep { $_ == $day } @market_points) {
 
                 if (exists $surface->{$day}->{atm_spread}
-                    and $surface->{$day}->{atm_spread} < $self->extra_sd_vol_spread)
+                    and $surface->{$day}->{atm_spread} < $self->min_vol_spread)
                 {
 
-                    $surface->{$day}->{atm_spread} += $self->extra_sd_vol_spread;
+                    $surface->{$day}->{atm_spread} += $self->min_vol_spread;
 
                 } elsif (exists $surface->{$day}->{vol_spread}) {
                     my $vol_spread = $surface->{$day}->{vol_spread};
 
                     foreach my $point (keys %{$vol_spread}) {
-                        if ($vol_spread->{$point} < $self->extra_sd_vol_spread) {
-                            $vol_spread->{$point} += $self->extra_sd_vol_spread;
+                        if ($vol_spread->{$point} < $self->min_vol_spread) {
+                            $vol_spread->{$point} += $self->min_vol_spread;
                         }
 
                     }
@@ -995,7 +1008,6 @@ sub _market_maturities_interpolation_function {
         T2 => $effective_date->plus_time_interval($T2 . 'd'),
     );
 
-    my $underlying = $self->underlying;
     my $tau1       = $builder->build_trading_calendar->weighted_days_in_period($dates{T1}, $dates{T}) / 365;
     my $tau2       = $builder->build_trading_calendar->weighted_days_in_period($dates{T1}, $dates{T2}) / 365;
 
@@ -1332,11 +1344,8 @@ sub get_market_rr_bf {
 
 Sets a flag to a smile.
 
-It is an ArrayRef of smile flag messages, in sub print_volsurface_in_table
-we will use Data::Dumper to print the flag.
-
-If a flag is set we will not autoupdate the vol, in cron_update_volsurface.cgi
-nor will we allow clients to buy new contracts.
+It is an ArrayRef of smile flag messages.
+If a flag is set we will not allow clients to buy new contracts.
 
 Usage:
 

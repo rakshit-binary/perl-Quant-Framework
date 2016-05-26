@@ -17,7 +17,7 @@ Represents a flat volatility surface, with vols at all points being the same
 
 =head1 SYNOPSIS
 
-    my $surface = Quanrt::Framework::VolSurface::Flat->new({underlying_config => $cfg1}});
+    my $surface = Quant::Framework::VolSurface::Flat->new({underlying_config => $cfg1}});
     my $vol     = $surface->get_volatility();
 
 =cut
@@ -30,8 +30,6 @@ Return the surface type
 
 =cut
 
-state $vol = LoadFile(File::ShareDir::dist_file('Quant-Framework','flat_volatility.yml');
-
 has '+type' => (
     default => 'flat',
 );
@@ -43,7 +41,7 @@ has atm_spread_point => (
 
 =head2 flat_vol
 
-The flat volatility returned for all points on this surface.
+The flat volatility returned for all points on this surface. This value needs to be initialized from outside.
 
 =cut
 
@@ -53,8 +51,7 @@ has flat_vol => (
 );
 
 sub _build_flat_vol {
-    my $self = shift;
-    return $vol->{$self->symbol};
+  return $self->underlying_config->default_volatility;
 }
 
 # a fixed 7% of volatility spread

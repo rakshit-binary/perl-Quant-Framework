@@ -1,5 +1,19 @@
 package Quant::Framework::VolSurface::Delta;
 
+=head1 NAME
+
+Quant::Framework::VolSurface::Delta
+
+=head1 DESCRIPTION
+
+Represents a volatility surface, built from market implied volatilities.
+
+=head1 SYNOPSIS
+
+    my $surface = Quant::Framework::VolSurface::Delta->new({underlying_config => $underlying_config});
+
+=cut
+
 use Moose;
 
 extends 'Quant::Framework::VolSurface';
@@ -75,19 +89,6 @@ sub save {
     return $self->chronicle_writer->set('volatility_surfaces', $self->symbol, $self->_document_content, $self->recorded_date);
 }
 
-=head1 NAME
-
-BOM::MarketData::VolSurface::Delta
-
-=head1 DESCRIPTION
-
-Represents a volatility surface, built from market implied volatilities.
-
-=head1 SYNOPSIS
-
-    my $surface = Quant::Framework::VolSurface::Delta->new({underlying_config => $underlying_config});
-
-=cut
 
 =head1 ATTRIBUTES
 
@@ -233,9 +234,10 @@ sub _ensure_conversion_args {
 =head2 generate_surface_for_cutoff
 
 Transforms the surface to a given cutoff. Cutoff can be given either
-as a bom_cutoff_code string, or a BOM::MarketData::VolSurface::Cutoff instance.
+as a qf_cutoff_code string, or a Quant::Framework::VolSurface::Cutoff instance.
 
 Returns the cut surface data-structure (not a B::M::VS instance).
+
 =cut
 
 sub generate_surface_for_cutoff {
@@ -245,7 +247,7 @@ sub generate_surface_for_cutoff {
     # Everything else is what we're transforming to.
 
     my $surface1 = $self;
-    $cutoff = BOM::MarketData::VolSurface::Cutoff->new($cutoff) if (not ref $cutoff);
+    $cutoff = Quant::Framework::VolSurface::Cutoff->new($cutoff) if (not ref $cutoff);
     my $surface_hashref = {};
     my $underlying_config      = $surface1->underlying_config;
 
@@ -404,7 +406,7 @@ USAGE:
     cutoff  => $my_new_cutoff,
   });
 
-Returns a new BOM::MarketData::VolSurface instance.
+Returns a new cloned instance.
 You can pass overrides to override an attribute value as it is on the original surface.
 
 =cut
@@ -452,7 +454,7 @@ sub _build_cutoff {
     my $date          = $self->for_date     ? $self->for_date  : Date::Utility->new;
     my $cutoff_string = $self->_new_surface ? 'New York 10:00' : 'UTC ' . $self->builder->build_trading_calendar->standard_closing_on($date)->time_hhmm;
 
-    return BOM::MarketData::VolSurface::Cutoff->new($cutoff_string);
+    return Quant::Framework::VolSurface::Cutoff->new($cutoff_string);
 }
 
 no Moose;

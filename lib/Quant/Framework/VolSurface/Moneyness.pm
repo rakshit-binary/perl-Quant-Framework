@@ -96,14 +96,14 @@ has '+type' => (
     default => 'moneyness',
 );
 
-=head2 extra_sd_vol_spread
+=head2 min_vol_spread
 
 sd vol spread is too low, hence add extra vol spread to it.
 This amount 3.1 was the optimal spread that we obtained from our backtesting
 
 =cut
 
-has extra_sd_vol_spread => (
+has min_vol_spread => (
     is      => 'ro',
     isa     => 'Num',
     default => 3.1 / 100,
@@ -181,10 +181,7 @@ sub get_volatility {
         die("Must pass exactly one of [delta, moneyness, strike] to get_volatility.");
     }
 
-    $args->{days} =
-        ($self->underlying_config->submarket_name eq 'random_daily')
-        ? 2 / 86400
-        : $self->_convert_expiry_to_day($args);
+    $args->{days} = $self->underlying_config->default_volatility_duration // $self->_convert_expiry_to_day($args);
 
     my $vol;
     if ($args->{delta}) {
