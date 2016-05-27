@@ -96,6 +96,12 @@ sub create_doc {
     return $obj;
 }
 
+=head2 create_underlying_config
+
+Creates an instance of UnderlyingConfig (for EURUSD or GDAXI) for tesing purposes.
+
+=cut
+
 sub create_underlying_config {
     my $symbol = shift;
 

@@ -57,6 +57,12 @@ sub _build_document {
     return $document;
 }
 
+=head2 save
+
+Saves current surface using chronicle writer
+
+=cut
+
 sub save {
     my $self = shift;
 
@@ -97,8 +103,7 @@ has '+type' => (
 
 =head2 min_vol_spread
 
-sd vol spread is too low, hence add extra vol spread to it.
-This amount 3.1 was the optimal spread that we obtained from our backtesting
+minimum volatility spread that we can accept for this volatility surface.
 
 =cut
 

@@ -406,6 +406,12 @@ sub _check_structure {
     return 1;
 }
 
+=head2 check_smiles
+
+Performs error checking on multiple smilesof a given surface.
+
+=cut
+
 sub check_smiles {
     my ($self, $surface) = @_;
 

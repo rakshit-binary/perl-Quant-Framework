@@ -6,6 +6,15 @@ use warnings;
 
 use Moose;
 
+use Quant::Framework::TradingCalendar;
+use Quant::Framework::InterestRate;
+use Quant::Framework::Currency;
+use Quant::Framework::Asset;
+use Quant::Framework::Dividend;
+use Quant::Framework::VolSurface::Delta;
+use Quant::Framework::VolSurface::Moneyness;
+use Quant::Framework::Utils::UnderlyingConfig;
+
 =head2 for_date
 
 The date for which we wish data

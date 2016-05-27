@@ -588,6 +588,12 @@ sub _get_max_spread_from_surface {
     return $spread;
 }
 
+=head2 get_smile_spread
+
+Returns the ask/bid spread for smile of this volatility surface
+
+=cut
+
 sub get_smile_spread {
 
     my ($self, $day) = @_;
@@ -597,7 +603,6 @@ sub get_smile_spread {
 
     my $smile_spread;
 
-# SD vol spread is too low, hence we add the flat rate of 3.1% on top of the 7 day spread
     if ($self->_market_name eq 'indices' and $self->type eq 'moneyness') {
 
         foreach my $day (keys %{$surface}) {
@@ -617,7 +622,6 @@ sub get_smile_spread {
                         if ($vol_spread->{$point} < $self->min_vol_spread) {
                             $vol_spread->{$point} += $self->min_vol_spread;
                         }
-
                     }
 
                     $surface->{$day}->{vol_spread} = $vol_spread;
@@ -666,6 +670,13 @@ sub _compute_and_set_smile_spread {
 
     return $smile_spread;
 }
+
+=head2 set_smile_spread
+
+#TODO: complete this
+sets smile spread for the given tenor
+
+=cut
 
 sub set_smile_spread {
     my ($self, $args) = @_;
@@ -1000,7 +1011,7 @@ sub _market_maturities_interpolation_function {
             . $self->recorded_date->datetime
             . '] for symbol['
             . $self->underlying_config->symbol
-            . '] for maturity['
+             '] for maturity['
             . $T
             . '] points ['
             . $T1 . ','
@@ -1424,6 +1435,12 @@ sub fetch_historical_surface_date {
     return \@dates;
 }
 
+=head2 is_valid
+
+Validates this volatility surface and returns possible errors (or empty if surface is valid).
+
+=cut
+
 sub is_valid {
     my $self = shift;
 
@@ -1453,6 +1470,12 @@ has validation_error => (
     is      => 'rw',
     default => '',
 );
+
+=head2 get_existing_surface
+
+Returns original surface and not the cut surface
+
+=cut
 
 sub get_existing_surface {
     my $self = shift;

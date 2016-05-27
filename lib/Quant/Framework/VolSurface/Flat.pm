@@ -78,11 +78,23 @@ sub get_volatility {
     return $self->flat_vol;
 }
 
+=head2 get_smile
+
+Returns default flat smile for flat volatility surface
+
+=cut
+
 sub get_smile {
     my $self = shift;
 
     return {map { $_ => $self->flat_vol } (qw(25 50 75))};
 }
+
+=head2 get_market_rr_bf
+
+Returns RR/BF for the smile of the current volatility surface
+
+=cut
 
 sub get_market_rr_bf {
     my ($self, $day) = @_;

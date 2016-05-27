@@ -49,6 +49,12 @@ sub effective_date_for {
     return $date->plus_time_interval((7 + $date->timezone_offset('America/New_York')->hours) * 3600)->truncate_to_day;
 }
 
+=head2 is_before_rollover
+
+Returns 1 if given date-time is before roll-over time.
+
+=cut
+
 sub is_before_rollover {
     my ($self, $date) = @_;
 

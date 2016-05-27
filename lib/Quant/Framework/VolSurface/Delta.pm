@@ -74,6 +74,12 @@ sub _build_document {
     return $document;
 }
 
+=head2 save
+
+Saves current surface using given chronicle writer.
+
+=cut
+
 sub save {
     my $self = shift;
 
