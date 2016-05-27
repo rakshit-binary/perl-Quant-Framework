@@ -51,6 +51,8 @@ has flat_vol => (
 );
 
 sub _build_flat_vol {
+  my $self = shift;
+
   return $self->underlying_config->default_volatility;
 }
 

@@ -26,6 +26,7 @@ use Quant::Framework::Utils::Types;
 use Quant::Framework::VolSurface::Cutoff;
 use Quant::Framework::VolSurface::Validator;
 use Quant::Framework::VolSurface::Utils;
+use Quant::Framework::Utils::Builder;
 
 has for_date => (
     is      => 'ro',
