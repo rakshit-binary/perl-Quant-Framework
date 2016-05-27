@@ -55,6 +55,7 @@ WriteMakefile(
         'Number::Closest::XS'           => 0,
         'Scalar::Util'                  => 0,
         'Scalar::Util::Numeric'         => 0,
+        'Math::Business::BlackScholes::Binaries' => 0,
         'Carp'                          => 0,
         'Digest::MD5'                   => 0,
         'Clone'                         => 0,

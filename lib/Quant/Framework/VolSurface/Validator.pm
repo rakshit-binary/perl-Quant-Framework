@@ -29,11 +29,10 @@ use 5.010;
 
 use Format::Util::Numbers qw(roundnear);
 use List::Util qw( min reduce );
-use Math::Business::BlackScholes::Binaries;
-
-use List::MoreUtils qw(indexes any);
 use Date::Utility;
-use VolSurface::Utils qw( get_strike_for_spot_delta );
+use Math::Business::BlackScholes::Binaries;
+use List::MoreUtils qw(indexes any);
+use Quant::Framework::VolSurface::Utils qw( get_strike_for_spot_delta );
 use Quant::Framework::VolSurface::Utils;
 use Quant::Framework::Utils::Builder;
 
