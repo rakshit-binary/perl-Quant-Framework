@@ -1011,7 +1011,7 @@ sub _market_maturities_interpolation_function {
             . $self->recorded_date->datetime
             . '] for symbol['
             . $self->underlying_config->symbol
-             '] for maturity['
+            . '] for maturity['
             . $T
             . '] points ['
             . $T1 . ','
