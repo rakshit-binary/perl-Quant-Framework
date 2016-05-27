@@ -1,4 +1,4 @@
-package BOM::MarketData::VolSurface::Cutoff;
+package Quant::Framework::VolSurface::Cutoff;
 
 use Moose;
 use DateTime;
@@ -149,7 +149,7 @@ sub seconds_to_cutoff_time {
 
     # From the given $from date and $maturity, we get the "effective day"
     # on which the cutoff we are looking for falls on.
-    # (See effective_date attr of BOM::MarketData::VolSurface for more details
+    # (See effective_date attr of Quant::Framework::VolSurface for more details
     #  on what this is in practice.)
     #
     # To do so, we first move directly ahead to the effective day,

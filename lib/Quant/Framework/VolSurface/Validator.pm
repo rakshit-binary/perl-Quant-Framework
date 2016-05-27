@@ -35,7 +35,7 @@ use List::MoreUtils qw(indexes any);
 use Date::Utility;
 use VolSurface::Utils qw( get_strike_for_spot_delta );
 use Quant::Framework::VolSurface::Utils;
-use Quant::Framework::Utils::RateHelper;
+use Quant::Framework::Utils::Builder;
 
 =head1 METHODS
 

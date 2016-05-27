@@ -47,6 +47,13 @@ use Quant::Framework::CorporateAction;
 use Data::Chronicle::Writer;
 use Data::Chronicle::Reader;
 use Data::Chronicle::Mock;
+use Quant::Framework::InterestRate;
+use Quant::Framework::Currency;
+use Quant::Framework::Asset;
+use Quant::Framework::Dividend;
+use Quant::Framework::VolSurface::Delta;
+use Quant::Framework::VolSurface::Moneyness;
+use Quant::Framework::Utils::UnderlyingConfig;
 
 =head2 create_doc
 
@@ -87,6 +94,67 @@ sub create_doc {
     }
 
     return $obj;
+}
+
+sub create_underlying_config {
+    my $symbol = shift;
+
+    return Quant::Framework::Utils::UnderlyingConfig->new({
+        symbol                                => $symbol,
+        system_symbol                         => $symbol,
+        market_name                           => 'forex',
+        market_prefer_discrete_dividend       => 0,
+        quanto_only                           => 0,
+        rate_to_imply_from                    => 'USD',
+        volatility_surface_type               => 'delta',
+        exchange_name                         => 'forex',
+        locale                                => 'EN',
+        uses_implied_rate_for_asset           => 1,
+        uses_implied_rate_for_quoted_currency => 0,
+        spot                                  => 1.12345,
+        asset_symbol                          => 'EUR',
+        quoted_currency_symbol                => 'USD',
+        extra_vol_diff_by_delta               => 5,
+        market_convention                     => {
+          atm_setting => 'atm_delta_neutral_straddle',
+          bf => '2_vol',
+          delta_premium_adjusted => 0,
+          delta_style => 'spot_delta',
+          rr => 'call-put',
+        },
+        asset_class                           => 'currency',
+        default_interest_rate                 => undef,
+        default_dividend_rate                 => undef,
+        default_volatility_duration           => undef,
+        default_volatility                    => undef,
+      }) if $symbol eq 'frxEURUSD';
+
+    return Quant::Framework::Utils::UnderlyingConfig->new({
+        symbol                                => $symbol,
+        system_symbol                         => $symbol,
+        market_name                           => 'indices',
+        market_prefer_discrete_dividend       => 0,
+        quanto_only                           => 0,
+        rate_to_imply_from                    => 'EUR',
+        volatility_surface_type               => 'moneyness',
+        exchange_name                         => 'FSE',
+        locale                                => 'EN',
+        uses_implied_rate_for_asset           => 0,
+        uses_implied_rate_for_quoted_currency => 0,
+        spot                                  => 10071.94,
+        asset_symbol                          => 'GDAXI',
+        quoted_currency_symbol                => 'EUR',
+        extra_vol_diff_by_delta               => 5,
+        market_convention                     => {
+          delta_premium_adjusted => 0,
+          delta_style => 'spot_delta',
+        },
+        asset_class                           => 'index',
+        default_interest_rate                 => undef,
+        default_dividend_rate                 => undef,
+        default_volatility_duration           => undef,
+        default_volatility                    => undef,
+      }) if $symbol eq 'GDAXI';
 }
 
 1;

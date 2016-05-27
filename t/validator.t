@@ -4,42 +4,47 @@ use Test::MockModule;
 use File::Spec;
 use JSON qw(decode_json);
 
-use BOM::Test::Runtime qw(:normal);
 use Date::Utility;
-use BOM::MarketData::Fetcher::VolSurface;
-use BOM::Market::Underlying;
-use BOM::MarketData::VolSurface::Delta;
-use BOM::Test::Data::Utility::UnitTestMarketData qw(:init);
-use BOM::MarketData::VolSurface::Validator;
-use BOM::Test::Data::Utility::UnitTestRedis qw(initialize_realtime_ticks_db);
-use BOM::Test::Data::Utility::UnitTestMarketData qw( :init );
-use BOM::Platform::Static::Config;
+use Quant::Framework::VolSurface::Delta;
+use Quant::Framework::VolSurface::Validator;
+use Quant::Framework::Utils::Test;
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
+
+Quant::Framework::Utils::Test::create_doc(
     'currency',
     {
         symbol => $_,
         date   => Date::Utility->new,
+        chronicle_reader    => $chronicle_r,
+        chronicle_writer    => $chronicle_w
     }) for (qw/USD EUR/);
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+  Quant::Framework::Utils::Test::create_doc(
     'index',
     {
         symbol => 'GDAXI',
         date   => Date::Utility->new,
+        chronicle_reader    => $chronicle_r,
+        chronicle_writer    => $chronicle_w
     });
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+  Quant::Framework::Utils::Test::create_doc(
     'volsurface_moneyness',
     {
         symbol        => 'GDAXI',
+        underlying_config => Quant::Framework::Utils::Test::create_underlying_config('GDAXI'),
         recorded_date => Date::Utility->new,
+        chronicle_reader    => $chronicle_r,
+        chronicle_writer    => $chronicle_w
     });
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+  Quant::Framework::Utils::Test::create_doc(
     'randomindex',
     {
         symbol => 'R_100',
-        date   => Date::Utility->new
+        date   => Date::Utility->new,
+        chronicle_reader    => $chronicle_r,
+        chronicle_writer    => $chronicle_w
     });
 
 initialize_realtime_ticks_db();
@@ -103,7 +108,7 @@ my %surface_data = (
     },
 );
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'currency',
     {
         symbol => 'JPY',
@@ -120,9 +125,11 @@ BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
         type         => 'implied',
         implied_from => 'USD',
         date         => Date::Utility->new,
+        chronicle_reader    => $chronicle_r,
+        chronicle_writer    => $chronicle_w
     });
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+  Quant::Framework::Utils::Test::create_doc(
     'currency',
     {
         symbol => 'EUR',
@@ -139,29 +146,37 @@ BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
         type         => 'implied',
         implied_from => 'USD',
         date         => Date::Utility->new,
+        chronicle_reader    => $chronicle_r,
+        chronicle_writer    => $chronicle_w
     });
 
-my $validator = BOM::MarketData::VolSurface::Validator->new;
+my $validator = Quant::Framework::VolSurface::Validator->new;
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc('currency', {symbol => $_}) for (qw(USD EUR-USD USD-EUR));
+Quant::Framework::Utils::Test::create_doc('currency', {symbol => $_}) for (qw(USD EUR-USD USD-EUR));
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'volsurface_delta',
     {
         symbol        => 'frxEURUSD',
+        underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
         surface       => \%surface_data,
         recorded_date => Date::Utility->new,
+        chronicle_reader    => $chronicle_r,
+        chronicle_writer    => $chronicle_w
     });
 
 subtest 'Unit test tools.' => sub {
     $surface_data{1}->{smile}->{50} = 0.17;
-    my $sample_surface = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    my $sample_surface = Quant::Framework::Utils::Test::create_doc(
         'volsurface_delta',
         {
             symbol        => 'frxEURUSD',
+            underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
             surface       => \%surface_data,
             recorded_date => Date::Utility->new,
             save          => 0,
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w
         });
     lives_ok { $validator->validate_surface($sample_surface) } 'Our default sample surface is valid.';
 };
@@ -170,27 +185,33 @@ subtest _check_age => sub {
     plan tests => 2;
 
     my $old_date = Date::Utility->new(time - 7201);
-    my $sample   = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    my $sample   = Quant::Framework::Utils::Test::create_doc(
         'volsurface_delta',
         {
             symbol        => 'frxEURUSD',
+            underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
             surface       => \%surface_data,
             recorded_date => $old_date,
             save          => 0,
-        });
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w
+          });
     throws_ok {
         $validator->validate_surface($sample);
     }
     qr/more than 2 hours/, 'Old vol surface.';
 
     my $acceptable_date = Date::Utility->new(time - 7199);
-    $sample = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    $sample = Quant::Framework::Utils::Test::create_doc(
         'volsurface_delta',
         {
             symbol        => 'frxEURUSD',
+            underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
             surface       => \%surface_data,
             recorded_date => $acceptable_date,
             save          => 0,
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w
         });
     lives_ok {
         $validator->validate_surface($sample);
@@ -201,10 +222,12 @@ subtest _check_age => sub {
 subtest '_check_structure' => sub {
     throws_ok {
         $validator->validate_surface(
-            BOM::MarketData::VolSurface::Delta->new(
-                underlying    => BOM::Market::Underlying->new('frxEURUSD'),
+            Quant::Framework::VolSurface::Delta->new(
+                underlying_config    => Quant::Framework::Utils::Test->create_underlying_config('frxEURUSD'),
                 surface       => {},
                 recorded_date => Date::Utility->new,
+                chronicle_reader  => $chronicle_r,
+                chronicle_writer  => $chronicle_w,
             ));
     }
     qr/Must be at least two maturities on vol surface/, 'No maturities on surface.';
@@ -224,10 +247,11 @@ subtest '_check_structure' => sub {
     qr/positive numeric days/, 'Maturity on surface too small.';
 
     throws_ok {
-        my $sample = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+        my $sample = Quant::Framework::Utils::Test::create_doc(
             'volsurface_delta',
             {
                 symbol  => 'frxEURUSD',
+                underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
                 surface => {
                     1 => {
                         smile => {
@@ -244,6 +268,8 @@ subtest '_check_structure' => sub {
                         }}
                 },
                 recorded_date => Date::Utility->new,
+                chronicle_reader    => $chronicle_r,
+                chronicle_writer    => $chronicle_w
             });
 
         $validator->validate_surface($sample);
@@ -251,9 +277,10 @@ subtest '_check_structure' => sub {
     qr/Day.381. in volsurface for underlying\S+ greater than allowed/, 'Maturity on surface too big.';
 
     throws_ok {
-        my $sample = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+        my $sample = Quant::Framework::Utils::Test::create_doc(
             'volsurface_delta',
             {
+                underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
                 symbol  => 'frxEURUSD',
                 surface => {
                     1  => {smile => {50 => 0.2}},
@@ -262,6 +289,8 @@ subtest '_check_structure' => sub {
                 },
                 recorded_date => Date::Utility->new,
                 save          => 0,
+                chronicle_reader    => $chronicle_r,
+                chronicle_writer    => $chronicle_w
             });
         $validator->validate_surface($sample);
     }
@@ -271,8 +300,10 @@ subtest '_check_structure' => sub {
     warning_like {
         throws_ok {
             $validator->validate_surface(
-                BOM::MarketData::VolSurface::Delta->new(
-                    underlying => BOM::Market::Underlying->new('frxEURUSD'),
+                Quant::Framework::VolSurface::Delta->new(
+                    chronicle_reader  => $chronicle_r,
+                    chronicle_writer  => $chronicle_w,
+                    underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
                     surface    => {
                         1 => {
                             smile => {
@@ -298,10 +329,11 @@ subtest '_check_structure' => sub {
     qr/Argument "banana" isn't numeric /, 'Invalid delta test warns.';
 
     throws_ok {
-        my $sample = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+        my $sample = Quant::Framework::Utils::Test::create_doc(
             'volsurface_delta',
             {
                 symbol  => 'frxEURUSD',
+                underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
                 surface => {
                     7 => {
                         smile => {
@@ -322,6 +354,8 @@ subtest '_check_structure' => sub {
                 },
                 recorded_date => Date::Utility->new,
                 save          => 0,
+                chronicle_reader    => $chronicle_r,
+                chronicle_writer    => $chronicle_w
             });
         $validator->validate_surface($sample);
     }
@@ -329,8 +363,8 @@ subtest '_check_structure' => sub {
 
     throws_ok {
         $validator->validate_surface(
-            BOM::MarketData::VolSurface::Delta->new(
-                underlying => BOM::Market::Underlying->new('frxEURUSD'),
+            Quant::Framework::VolSurface::Delta->new(
+                underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
                 deltas     => [15, 50, 85],
                 surface    => {
                     1 => {
@@ -351,6 +385,8 @@ subtest '_check_structure' => sub {
                     },
                 },
                 recorded_date => Date::Utility->new,
+                chronicle_reader    => $chronicle_r,
+                chronicle_writer    => $chronicle_w
             ));
     }
     qr/Difference between point 15 and 50 too great/, 'Too great a difference between delta points.';
@@ -373,8 +409,8 @@ subtest _check_smiles => sub {
 subtest _check_termstructure_for_calendar_arbitrage => sub {
     plan tests => 1;
 
-    my $surface = BOM::MarketData::VolSurface::Delta->new(
-        underlying => BOM::Market::Underlying->new('frxEURUSD'),
+    my $surface = Quant::Framework::VolSurface::Delta->new(
+        underlying_config=> Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
         deltas     => [25, 50, 75],
         surface    => {
             1 => {
@@ -395,6 +431,8 @@ subtest _check_termstructure_for_calendar_arbitrage => sub {
             },
         },
         recorded_date => Date::Utility->new,
+        chronicle_reader    => $chronicle_r,
+        chronicle_writer    => $chronicle_w
     );
 
     $validator->validate_surface($surface);
@@ -404,10 +442,11 @@ subtest _check_termstructure_for_calendar_arbitrage => sub {
 
 subtest 'partial surface data' => sub {
     plan tests => 1;
-    my $sample = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    my $sample = Quant::Framework::Utils::Test::create_doc(
         'volsurface_delta',
         {
             recorded_date => Date::Utility->new,
+            underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
             surface       => {
                 1 => {
                     smile => {
@@ -428,6 +467,8 @@ subtest 'partial surface data' => sub {
             },
             symbol => 'frxEURUSD',
             save   => 0,
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w
         },
     );
 
@@ -440,15 +481,12 @@ subtest 'partial surface data' => sub {
 subtest 'Admissible Checks 1 & 2: Strike related.' => sub {
     plan tests => 1;
 
-    # Setting this increases our tolerance for jumps in the vol across smiles,
-    # allowing this test data to get through to the check that's supposed to catch it.
-    BOM::Platform::Static::Config::quants->{market_data}->{extra_vol_diff_by_delta} = 5;
-
     # Need an existing USDJPY surface in place...
-    BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    Quant::Framework::Utils::Test::create_doc(
         'volsurface_delta',
         {
             symbol  => 'frxEURUSD',
+            underlying_config => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
             surface => {
                 7 => {
                     smile => {
@@ -468,6 +506,8 @@ subtest 'Admissible Checks 1 & 2: Strike related.' => sub {
                 },
             },
             recorded_date => Date::Utility->new,
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w
         });
 
     my %surface_data = (
@@ -488,10 +528,12 @@ subtest 'Admissible Checks 1 & 2: Strike related.' => sub {
             vol_spread => {50 => 0.03},
         },
     );
-    my $surface = BOM::MarketData::VolSurface::Delta->new(
-        underlying    => BOM::Market::Underlying->new('frxEURUSD'),
+    my $surface = Quant::Framework::VolSurface::Delta->new(
+        underlying_config=> Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
         surface       => \%surface_data,
         recorded_date => Date::Utility->new,
+        chronicle_reader    => $chronicle_r,
+        chronicle_writer    => $chronicle_w
     );
 
     throws_ok {
@@ -502,18 +544,21 @@ subtest 'Admissible Checks 1 & 2: Strike related.' => sub {
 
 subtest 'Moneyness surfaces' => sub {
     plan tests => 2;
-    my $surface = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    my $surface = Quant::Framework::Utils::Test::create_doc(
         'volsurface_moneyness',
         {
             recorded_date => Date::Utility->new,
+            underlying_config => Quant::Framework::Utils::Test::create_underlying_config('GDAXI'),
             save          => 0,
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w
         });
     $surface->surface->{7}->{smile}->{100} = 0.26;
     # check that a valid moneyness surface is valid
     lives_ok { $validator->validate_surface($surface) } 'Our default moneyness sample surface is valid.';
 
     # check that a surface that should fail Ad#2 does indeed fail.
-    $surface = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    $surface = Quant::Framework::Utils::Test::create_doc(
         'volsurface_moneyness',
         {
             surface => {
@@ -573,6 +618,9 @@ subtest 'Moneyness surfaces' => sub {
             },
             recorded_date => Date::Utility->new,
             save          => 0,
+            chronicle_reader    => $chronicle_r,
+            underlying_config => Quant::Framework::Utils::Test::create_underlying_config('GDAXI'),
+            chronicle_writer    => $chronicle_w
         });
 
     throws_ok {
@@ -585,17 +633,19 @@ sub _sample_surface {
     my $args   = shift || {};
     my $symbol = shift || 'frxEURUSD';
 
-    BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    return Quant::Framework::Utils::Test::create_doc(
         'volsurface_delta',
         {
             symbol               => $symbol,
+            underlying_config    => Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD'),
+            chronicle_writer     => $chronicle_w,
             surface              => \%surface_data,
             _default_cutoff_list => [],
             %$args,
             recorded_date => Date::Utility->new,
+            chronicle_reader    => $chronicle_r,
+            chronicle_writer    => $chronicle_w
         });
-
-    return BOM::MarketData::Fetcher::VolSurface->new->fetch_surface({underlying => BOM::Market::Underlying->new($symbol)});
 }
 
 done_testing;

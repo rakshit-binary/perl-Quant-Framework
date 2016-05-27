@@ -443,7 +443,7 @@ cutoff is UTC 23:59 or UTC 21:00 for contract pricing.
 
 has cutoff => (
     is         => 'ro',
-    isa        => 'bom_cutoff_helper',
+    isa        => 'qf_cutoff_helper',
     lazy_build => 1,
     coerce     => 1,
 );

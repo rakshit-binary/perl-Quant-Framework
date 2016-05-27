@@ -63,7 +63,8 @@ sub _build_calendar {
 
 has builder => (
     is  => 'ro',
-    isa => 'Quant::Framework::Utils::Builder' lazy_build => 1,
+    isa => 'Quant::Framework::Utils::Builder',
+    lazy_build => 1,
 );
 
 sub _build_builder {
@@ -98,7 +99,7 @@ has _market_name => (
 );
 
 sub _build__market_name {
-    return shift->underlying->market->name;
+    return shift->underlying_config->market_name;
 }
 
 =head2 recorded_date
@@ -430,18 +431,6 @@ sub _build__vol_surface_validator {
     return Quant::Framework::VolSurface::Validator->new;
 }
 
-# Getting the exchange off the underlying each time is crazy expensive and we
-# need to do it an awful lot. So, we cache here.
-has _calendar => (
-    is         => 'ro',
-    isa        => 'Quant::Framework::TradingCalendar',
-    lazy_build => 1,
-);
-
-sub _build__calendar {
-    return shift->underlying->calendar;
-}
-
 has _ON_day => (
     is         => 'ro',
     isa        => 'Int',
@@ -451,7 +440,7 @@ has _ON_day => (
 sub _build__ON_day {
     my $self = shift;
 
-    return $self->_calendar->calendar_days_to_trade_date_after($self->effective_date);
+    return $self->calendar->calendar_days_to_trade_date_after($self->effective_date);
 }
 
 around BUILDARGS => sub {
@@ -464,9 +453,7 @@ around BUILDARGS => sub {
     if (ref $underlying_config
         and $underlying_config->isa('Quant::Framework::Utils::UnderlyingConfig'))
     {
-        $args{symbol} = $underlying->system_symbol;
-        #TODO: we won't store for_date in UnderlyingConfig so make sure
-        #we are passing it everywhere we create a vol-surface
+        $args{symbol} = $underlying_config->system_symbol;
     }
 
     if ($args{surface} or $args{recorded_date}) {
@@ -476,6 +463,14 @@ around BUILDARGS => sub {
         }
 
         $args{_new_surface} = 1;
+        my $builder = Quant::Framework::Utils::Builder->new({
+            for_date           => $args{for_date},
+            chronicle_reader   => $args{chronicle_reader},
+            chronicle_writer   => $args{chronicle_writer},
+            underlying_config => $args{underlying_config},
+          });
+
+        my $expiry_conventions = $builder->build_expiry_conventions;
 
         # If the smile's day is given as a tenor, we convert
         # it to a day and add the tenor to the smile:
@@ -484,15 +479,6 @@ around BUILDARGS => sub {
 
             if (_is_tenor($maturity)) {
                 $effective_date ||= Quant::Framework::VolSurface::Utils->new->effective_date_for($args{recorded_date});
-
-                my $builder = Quant::Framework::Utils::Builder->new({
-                    for_date           => $args->{for_date},
-                    chronicle_reader   => $args->{chronicle_reader},
-                    chronicle_writer   => $args->{chronicle_writer},
-                    underlying_config => $args->{underlying_config},
-                });
-
-                my $expiry_conventions = $builder->build_expiry_conventions;
 
                 my $vol_expiry_date = $expiry_conventions->vol_expiry_date({
                     from => $effective_date,
@@ -1008,13 +994,13 @@ sub _market_maturities_interpolation_function {
         T2 => $effective_date->plus_time_interval($T2 . 'd'),
     );
 
-    my $tau1       = $builder->build_trading_calendar->weighted_days_in_period($dates{T1}, $dates{T}) / 365;
-    my $tau2       = $builder->build_trading_calendar->weighted_days_in_period($dates{T1}, $dates{T2}) / 365;
+    my $tau1       = $self->builder->build_trading_calendar->weighted_days_in_period($dates{T1}, $dates{T}) / 365;
+    my $tau2       = $self->builder->build_trading_calendar->weighted_days_in_period($dates{T1}, $dates{T2}) / 365;
 
     warn(     'Error in volsurface['
             . $self->recorded_date->datetime
             . '] for symbol['
-            . $underlying_config->symbol
+            . $self->underlying_config->symbol
             . '] for maturity['
             . $T
             . '] points ['
