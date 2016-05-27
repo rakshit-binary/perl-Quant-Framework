@@ -22,7 +22,6 @@ use List::Util qw( min max first );
 use Number::Closest::XS qw(find_closest_numbers_around);
 use Math::Function::Interpolator;
 
-use Format::Util::Numbers qw( roundnear );
 use Quant::Framework::Utils::Types;
 use Quant::Framework::VolSurface::Cutoff;
 use Quant::Framework::VolSurface::Validator;

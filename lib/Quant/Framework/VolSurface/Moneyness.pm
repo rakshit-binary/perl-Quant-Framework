@@ -14,8 +14,7 @@ use Moose;
 extends 'Quant::Framework::VolSurface';
 
 use Date::Utility;
-use VolSurface::Utils qw(get_delta_for_strike get_strike_for_moneyness);
-
+use Quant::Framework::VolSurface::Utils qw(get_delta_for_strike get_strike_for_moneyness);
 use Try::Tiny;
 use Math::Function::Interpolator;
 use List::MoreUtils qw(indexes);

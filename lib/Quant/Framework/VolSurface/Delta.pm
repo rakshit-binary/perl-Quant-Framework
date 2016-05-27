@@ -18,10 +18,8 @@ use Moose;
 
 extends 'Quant::Framework::VolSurface';
 
-use Data::Dumper;
 use Date::Utility;
-use Format::Util::Numbers qw( roundnear );
-use VolSurface::Utils qw( get_delta_for_strike get_strike_for_moneyness );
+use Quant::Framework::VolSurface::Utils qw( get_delta_for_strike get_strike_for_moneyness );
 use List::MoreUtils qw(none);
 use Math::Function::Interpolator;
 use Storable qw( dclone );
