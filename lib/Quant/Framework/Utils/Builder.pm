@@ -218,7 +218,7 @@ sub interest_rate_for {
 
 =head2 get_discrete_dividend_for_period
 
-Returns discrete dividend for the given (start,end) dates for the underlying specified using `underlying_config`
+Returns discrete dividend for the given (start,end) dates and dividend recorded date for the underlying specified using `underlying_config`
 
 =cut
 
