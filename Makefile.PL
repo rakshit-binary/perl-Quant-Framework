@@ -58,6 +58,7 @@ WriteMakefile(
         'Math::Business::BlackScholes::Binaries' => 0,
         'Carp'                          => 0,
         'Digest::MD5'                   => 0,
+        'VolSurface::Utils'             => 0,
         'Clone'                         => 0,
     },
     dist => {
