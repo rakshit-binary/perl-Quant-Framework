@@ -105,35 +105,10 @@ Creates an instance of UnderlyingConfig (for EURUSD or GDAXI) for tesing purpose
 sub create_underlying_config {
     my $symbol = shift;
 
-    return Quant::Framework::Utils::UnderlyingConfig->new({
-        symbol                                => $symbol,
-        system_symbol                         => $symbol,
-        market_name                           => 'forex',
-        market_prefer_discrete_dividend       => 0,
-        quanto_only                           => 0,
-        rate_to_imply_from                    => 'USD',
-        volatility_surface_type               => 'delta',
-        exchange_name                         => 'FOREX',
-        locale                                => 'EN',
-        uses_implied_rate_for_asset           => 1,
-        uses_implied_rate_for_quoted_currency => 0,
-        spot                                  => 1.12345,
-        asset_symbol                          => 'EUR',
-        quoted_currency_symbol                => 'USD',
-        extra_vol_diff_by_delta               => 5,
-        market_convention                     => {
-          atm_setting => 'atm_delta_neutral_straddle',
-          bf => '2_vol',
-          delta_premium_adjusted => 0,
-          delta_style => 'spot_delta',
-          rr => 'call-put',
-        },
-        asset_class                           => 'currency',
-        default_interest_rate                 => undef,
-        default_dividend_rate                 => undef,
-        default_volatility_duration           => undef,
-        default_volatility                    => undef,
-      }) if $symbol eq 'frxEURUSD';
+    my $fixture = LoadFile(File::ShareDir::dist_file('Quant-Framework', 'test_underlying_config.yml'));
+    my $data    = $fixture->{$symbol};
+
+    return Quant::Framework::Utils::UnderlyingConfig->new($data);
 
     return Quant::Framework::Utils::UnderlyingConfig->new({
         symbol                                => $symbol,
