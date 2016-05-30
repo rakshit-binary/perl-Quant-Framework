@@ -337,6 +337,9 @@ sub _build_surface {
         symbol   => $self->symbol,
         cutoff   => $master_cutoff,
         for_date => $self->for_date,
+        chronicle_reader => $self->chronicle_reader,
+        chronicle_writer => $self->chronicle_writer,
+        underlying_config => $self->underlying_config,
     );
     my $surface = $master_surface->generate_surface_for_cutoff($cutoff);
     $self->_stores_surface($cutoff, $surface);
@@ -347,6 +350,7 @@ sub _build_surface {
 sub _stores_surface {
     my ($self, $cutoff, $surface_hashref) = @_;
 
+    #TODO: replace this call
     if (BOM::System::Localhost::is_master_server()) {
         try {
             my $doc = $self->document;
@@ -433,6 +437,8 @@ sub clone {
     $clone_args->{recorded_date}   = $self->recorded_date         if (not exists $clone_args->{recorded_date});
     $clone_args->{print_precision} = $self->print_precision       if (not exists $clone_args->{print_precision});
     $clone_args->{original_term}   = dclone($self->original_term) if (not exists $clone_args->{original_term});
+    $clone_args->{chronicle_reader} = $self->chronicle_reader;
+    $clone_args->{chronicle_writer} = $self->chronicle_writer;
 
     return $self->meta->name->new($clone_args);
 }

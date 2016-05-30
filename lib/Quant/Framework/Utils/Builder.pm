@@ -11,6 +11,7 @@ use Quant::Framework::InterestRate;
 use Quant::Framework::Currency;
 use Quant::Framework::Asset;
 use Quant::Framework::Dividend;
+use Quant::Framework::ExpiryConventions;
 use Quant::Framework::Utils::UnderlyingConfig;
 
 =head2 for_date
@@ -95,12 +96,12 @@ Creates a default instance of TradingCalendar according to current parameters (c
 sub build_trading_calendar {
     my $self = shift;
 
-    return Quant::Framework::TradingCalendar->new({
-            symbol => $self->underlying_config->exchange_name,
-            chronicle_reader => $self->chronicle_reader,
-            (($self->underlying_config->locale) ? (locale => $self->underlying_config->locale) :()),
-            for_date => $self->for_date
-        });
+    return Quant::Framework::TradingCalendar->new(
+            $self->underlying_config->exchange_name,
+            $self->chronicle_reader,
+            ($self->underlying_config->locale) ? $self->underlying_config->locale : undef,
+            $self->for_date
+        );
 }
 
 

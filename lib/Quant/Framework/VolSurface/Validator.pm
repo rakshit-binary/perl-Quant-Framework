@@ -32,7 +32,7 @@ use List::Util qw( min reduce );
 use Date::Utility;
 use Math::Business::BlackScholes::Binaries;
 use List::MoreUtils qw(indexes any);
-use Quant::Framework::VolSurface::Utils qw( get_strike_for_spot_delta );
+use VolSurface::Utils qw( get_strike_for_spot_delta );
 
 =head1 METHODS
 
@@ -330,6 +330,7 @@ sub _check_structure {
 
     foreach my $day (@days) {
         if ($day !~ /^\d+$/) {
+          $DB::single=1;
             die("Invalid day[$day] in volsurface for underlying[$system_symbol]. Not a positive integer.");
         } elsif ($day > $max_term) {
             die("Day[$day] in volsurface for underlying[$system_symbol] greater than allowed.");
@@ -341,8 +342,9 @@ sub _check_structure {
     }
 
     my $min_day = min @days;
+    my $market = $surface->underlying_config->market_name;
 
-    if ($surface->is_forex and $min_day > 7) {
+    if ($market eq 'forex' and $min_day > 7) {
         die("ON term is missing in volsurface for underlying $system_symbol, the minimum term is $min_day");
     }
 

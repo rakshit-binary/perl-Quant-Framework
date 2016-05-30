@@ -113,7 +113,7 @@ sub create_underlying_config {
         quanto_only                           => 0,
         rate_to_imply_from                    => 'USD',
         volatility_surface_type               => 'delta',
-        exchange_name                         => 'forex',
+        exchange_name                         => 'FOREX',
         locale                                => 'EN',
         uses_implied_rate_for_asset           => 1,
         uses_implied_rate_for_quoted_currency => 0,

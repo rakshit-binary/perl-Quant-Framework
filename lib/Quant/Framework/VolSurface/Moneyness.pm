@@ -390,6 +390,9 @@ sub clone {
     $clone_args{original_term} = dclone($self->original_term)
         if (not exists $clone_args{original_term});
 
+    $clone_args{chronicle_reader} = $self->chronicle_reader;
+    $clone_args{chronicle_writer} = $self->chronicle_writer;
+
     return $self->meta->name->new(\%clone_args);
 }
 

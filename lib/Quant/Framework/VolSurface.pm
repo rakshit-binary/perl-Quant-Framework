@@ -58,7 +58,7 @@ has calendar => (
 sub _build_calendar {
     my $self = shift;
 
-    return $self->builder->build_calendar;
+    return $self->builder->build_trading_calendar;
 }
 
 has builder => (
@@ -70,7 +70,7 @@ has builder => (
 sub _build_builder {
     my $self = shift;
 
-    return Quant::Framework::Utils::Bulder->new({
+    return Quant::Framework::Utils::Builder->new({
         for_date           => $self->for_date,
         chronicle_reader   => $self->chronicle_reader,
         chronicle_writer   => $self->chronicle_writer,
@@ -448,6 +448,8 @@ around BUILDARGS => sub {
     my $class = shift;
     my %args  = (ref $_[0] eq 'HASH') ? %{$_[0]} : @_;
     my %day_for_tenor;
+
+    die "Chronicle reader is required to create a vol-surface" if not defined $args{chronicle_reader};
 
     my $underlying_config = $args{underlying_config};
     if (ref $underlying_config
@@ -1485,7 +1487,9 @@ sub get_existing_surface {
     return $self->_new_surface
         ? $self->new({
             underlying_config => $self->underlying_config,
-            cutoff     => $self->cutoff
+            cutoff     => $self->cutoff,
+            chronicle_reader => $self->chronicle_reader,
+            chronicle_writer => $self->chronicle_writer,
         })
         : $self;
 }
