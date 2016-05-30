@@ -73,7 +73,7 @@ subtest default_bloomberg_cutoff => sub {
 
         my $AS51 = Quant::Framework::Utils::Test::create_underlying_config('AS51');
         my $volsurface = Quant::Framework::VolSurface::Moneyness->new({
-            underlying => $AS51, 
+            underlying_config => $AS51, 
             _new_surface => 1,
             chronicle_reader => $chronicle_r,
             chronicle_writer => $chronicle_w,
