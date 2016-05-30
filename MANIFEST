@@ -34,6 +34,7 @@ share/exchange.yml
 share/exchanges_trading_days_aliases.yml
 share/expected_trading_days.yml
 share/test_data.yml
+share/test_underlying_config.yml
 t/00-load.t
 t/asset.t
 t/corporate_actions.t
@@ -56,4 +57,5 @@ t/trades_on.t
 t/trading_calendar.t
 t/trading_calendar_caching.t
 t/validator.t
+t/vol_utils.t
 t/weight_on.t
