@@ -4,16 +4,20 @@ use Test::MockModule;
 use File::Spec;
 use JSON qw(decode_json);
 
-use BOM::Test::Data::Utility::UnitTestMarketData qw(:init);
+use Quant::Framework::Utils::Test;
+use Quant::Framework::VolSurface::Delta;
 use Date::Utility;
-use BOM::MarketData::VolSurface::Delta;
-use BOM::Market::Underlying;
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
+my $underlying_config = Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD');
+
+Quant::Framework::Utils::Test::create_doc(
     'currency',
     {
         symbol => 'USD',
         date   => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
 
 subtest 'get_volatility for expiry_date: Surface date Monday before NY5pm.' => sub {
@@ -313,12 +317,14 @@ sub _sample_surface {
         },
     );
 
-    my $surface = BOM::MarketData::VolSurface::Delta->new(
-        underlying    => BOM::Market::Underlying->new('frxEURUSD'),
+    my $surface = Quant::Framework::VolSurface::Delta->new(
+        underlying_config    => $underlying_config,
         surface       => \%surface_data,
         recorded_date => Date::Utility->new,
         deltas        => [25, 50, 75],
         cutoff        => 'UTC 23:59',
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     );
 
     return $surface->clone(@args);
