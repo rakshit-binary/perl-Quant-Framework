@@ -18,17 +18,25 @@ use warnings;
 use Moose;
 
 use Date::Utility;
-use BOM::Market::Underlying;
 use Quant::Framework::VolSurface::Delta;
 
-has _underlying => (
+has chronicle_reader => (
+    is  => 'ro',
+    isa => 'Data::Chronicle::Reader',
+    required => 1,
+);
+
+has chronicle_writer => (
+    is  => 'ro',
+    isa => 'Data::Chronicle::Writer',
+    required => 1,
+);
+
+has _underlying_config => (
     is      => 'ro',
-    isa     => 'BOM::Market::Underlying',
+    isa     => 'Quant::Framework::Utils::UnderlyingConfig',
     default => sub {
-        return BOM::Market::Underlying->new({
-            symbol        => 'frxEURUSD',
-            closed_weight => 0.0,
-        });    # try going out of scope now!
+        return Quant::Framework::Utils::Test::create_underlying_config('frxEURUSD');
     },
 );
 
@@ -36,10 +44,10 @@ sub get {
     my $self = shift;
 
     return Quant::Framework::VolSurface::Delta->new(
-        underlying_config    => $self->_underlying->config,
+        underlying_config    => $self->_underlying_config,
         recorded_date => Date::Utility->new('2012-01-13 00:00:00'),
-        chronicle_reader  => BOM::System::Chronicle::get_chronicle_reader(),
-        chronicle_writer  => BOM::System::Chronicle::get_chronicle_writer(),
+        chronicle_reader  => $self->chronicle_reader,
+        chronicle_writer  => $self->chronicle_writer,
         market_points => {
             smile      => [3, 7, 14, 21, 28],
             vol_spread => [3, 7, 14, 21, 28],
