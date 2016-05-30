@@ -6,6 +6,7 @@ use warnings;
 
 use Moose;
 
+use List::Util qw( min );
 use Quant::Framework::TradingCalendar;
 use Quant::Framework::InterestRate;
 use Quant::Framework::Currency;
@@ -297,5 +298,74 @@ sub dividend_adjustments_for_period {
         recorded_date=> $dividend_recorded_date,
     };
 }
+
+=head2 weighted_days_in_period
+
+Returns the sum of the weights we apply to each day in the requested period.
+
+=cut
+
+sub weighted_days_in_period {
+    my ($self, $begin, $end) = @_;
+
+    $end = $end->truncate_to_day;
+    my $current = $begin->truncate_to_day->plus_time_interval('1d');
+    my $days    = 0.0;
+
+    while (not $current->is_after($end)) {
+        $days += $self->weight_on($current);
+        $current = $current->plus_time_interval('1d');
+    }
+
+    return $days;
+}
+
+=head2 weight_on
+
+Returns the weight for a given day (given as a Date::Utility object).
+Returns our closed weight for days when the market is closed.
+
+=cut
+
+sub weight_on {
+    my ($self, $date) = @_;
+
+    my $calendar = $self->build_trading_calendar;
+    my $base = $self->build_asset;
+    my $numeraire = Quant::Framework::Currency->new({
+            symbol           => $self->underlying_config->quoted_currency_symbol,
+            for_date         => $self->for_date,
+            chronicle_reader => $self->chronicle_reader,
+            chronicle_writer => $self->chronicle_writer,
+        });
+
+    my $weight = $calendar->weight_on($date) || $self->closed_weight;
+    if ($self->underlying_config->market_name eq 'forex') {
+        my $currency_weight =
+            0.5 * ($base->weight_on($date) + $numeraire->weight_on($date));
+
+        # If both have a holiday, set to 0.25
+        if (!$currency_weight) {
+            $currency_weight = 0.25;
+        }
+
+        $weight = min($weight, $currency_weight);
+    }
+
+    return $weight;
+}
+
+=head2 closed_weight
+
+The weight given to a day when the underlying is closed.
+
+=cut
+
+sub closed_weight {
+    my $self = shift;
+
+    return ($self->underlying_config->market_name eq 'indices') ? 0.55 : 0.06;
+};
+
 
 1;

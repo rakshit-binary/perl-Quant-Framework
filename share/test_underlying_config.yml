@@ -148,3 +148,67 @@ R_50:
     delta_premium_adjusted : 0
     delta_style : 'spot_delta'
   asset_class : 'synthetic'
+  default_volatility: 0.5
+FCHI:
+  symbol: FCHI
+  system_symbol: FCHI
+  market_name: indices
+  market_prefer_discrete_dividend: 0
+  quanto_only : 0
+  rate_to_imply_from : 'EUR'
+  volatility_surface_type : 'moneyness'
+  exchange_name : 'EURONEXT'
+  locale : 'EN'
+  uses_implied_rate_for_asset : 0
+  uses_implied_rate_for_quoted_currency : 0
+  spot : 3563.07
+  asset_symbol : 'FCHI'
+  quoted_currency_symbol : 'EUR'
+  extra_vol_diff_by_delta : 5
+  market_convention:
+    delta_premium_adjusted : 0
+    delta_style : 'spot_delta'
+  asset_class : 'index'
+frxGBPNOK:
+  symbol: frxGBPNOK
+  system_symbol: frxGBPNOK
+  market_name: forex
+  market_prefer_discrete_dividend: 0
+  quanto_only : 0
+  rate_to_imply_from : 'GBP'
+  volatility_surface_type : 'delta'
+  exchange_name : 'FOREX'
+  locale : 'EN'
+  uses_implied_rate_for_asset : 0
+  uses_implied_rate_for_quoted_currency : 1
+  spot : 12.1930
+  asset_symbol : 'GBP'
+  quoted_currency_symbol : 'NOK'
+  extra_vol_diff_by_delta : 5
+  market_convention:
+    atm_setting : 'atm_delta_neutral_straddle'
+    bf : '2_vol'
+    delta_premium_adjusted : 1
+    delta_style : 'spot_delta'
+    rr : 'call-put'
+  asset_class : 'currency'
+FTSE:
+  symbol: FTSE
+  system_symbol: FTSE
+  market_name: indices
+  market_prefer_discrete_dividend: 0
+  quanto_only : 0
+  rate_to_imply_from : 'GBP'
+  volatility_surface_type : 'moneyness'
+  exchange_name : 'LSE'
+  locale : 'EN'
+  uses_implied_rate_for_asset : 0
+  uses_implied_rate_for_quoted_currency : 0
+  spot : 7000.00
+  asset_symbol : 'FTSE'
+  quoted_currency_symbol : 'GBP'
+  extra_vol_diff_by_delta : 5
+  market_convention:
+    delta_premium_adjusted : 0
+    delta_style : 'spot_delta'
+  asset_class : 'index'

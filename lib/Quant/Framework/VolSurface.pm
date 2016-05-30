@@ -46,7 +46,7 @@ has chronicle_writer => (
 
 has underlying_config => (
     is  => 'ro',
-    isa => 'Quant::Framework::Utils::UnderlyingConfig',
+    required => 1,
 );
 
 has calendar => (
@@ -450,6 +450,7 @@ around BUILDARGS => sub {
     my %day_for_tenor;
 
     die "Chronicle reader is required to create a vol-surface" if not defined $args{chronicle_reader};
+    die "Attribute underlying_config is required" if not defined $args{underlying_config};
 
     my $underlying_config = $args{underlying_config};
     if (ref $underlying_config
@@ -1007,8 +1008,8 @@ sub _market_maturities_interpolation_function {
         T2 => $effective_date->plus_time_interval($T2 . 'd'),
     );
 
-    my $tau1       = $self->builder->build_trading_calendar->weighted_days_in_period($dates{T1}, $dates{T}) / 365;
-    my $tau2       = $self->builder->build_trading_calendar->weighted_days_in_period($dates{T1}, $dates{T2}) / 365;
+    my $tau1       = $self->builder->weighted_days_in_period($dates{T1}, $dates{T}) / 365;
+    my $tau2       = $self->builder->weighted_days_in_period($dates{T1}, $dates{T2}) / 365;
 
     warn(     'Error in volsurface['
             . $self->recorded_date->datetime

@@ -3,6 +3,7 @@ use Test::FailWarnings;
 use JSON qw(decode_json);
 
 use Quant::Framework::Utils::Test;
+use Quant::Framework::VolSurface::Flat;
 
 my $ul = Quant::Framework::Utils::Test::create_underlying_config('R_50');
 my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();

@@ -19,7 +19,7 @@ use Moose;
 extends 'Quant::Framework::VolSurface';
 
 use Date::Utility;
-use Quant::Framework::VolSurface::Utils qw( get_delta_for_strike get_strike_for_moneyness );
+use VolSurface::Utils qw( get_delta_for_strike get_strike_for_moneyness );
 use List::MoreUtils qw(none);
 use Math::Function::Interpolator;
 use Storable qw( dclone );
