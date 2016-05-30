@@ -212,3 +212,26 @@ FTSE:
     delta_premium_adjusted : 0
     delta_style : 'spot_delta'
   asset_class : 'index'
+frxEURGBP:
+  symbol: frxEURGBP
+  system_symbol: frxEURGBP
+  market_name: forex
+  market_prefer_discrete_dividend: 0
+  quanto_only : 0
+  rate_to_imply_from : 'EUR'
+  volatility_surface_type : 'delta'
+  exchange_name : 'FOREX'
+  locale : 'EN'
+  uses_implied_rate_for_asset : 0
+  uses_implied_rate_for_quoted_currency : 1
+  spot : 0.88062
+  asset_symbol : 'EUR'
+  quoted_currency_symbol : 'GBP'
+  extra_vol_diff_by_delta : 5
+  market_convention:
+    atm_setting : 'atm_delta_neutral_straddle'
+    bf : '2_vol'
+    delta_premium_adjusted : 1
+    delta_style : 'spot_delta'
+    rr : 'call-put'
+  asset_class : 'currency'

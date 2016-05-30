@@ -10,7 +10,6 @@ use File::Find;
 use IO::File;
 use Text::CSV;
 
-use BOM::Market::Underlying;
 use Date::Utility;
 
 use Quant::Framework::VolSurface::Cutoff;
@@ -28,6 +27,18 @@ sub get {
 
     return $surface;
 }
+
+has chronicle_reader => (
+    is  => 'ro',
+    isa => 'Data::Chronicle::Reader',
+    required => 1,
+);
+
+has chronicle_writer => (
+    is  => 'ro',
+    isa => 'Data::Chronicle::Writer',
+    required => 1,
+);
 
 has relative_data_dir => (
     is      => 'ro',
@@ -68,7 +79,7 @@ sub _build_surfaces {
         my @surfaces = $self->_get_surfaces_from_file($filename);
 
         foreach my $s (@surfaces) {
-            $all_surfaces->{$s->underlying->symbol}->{$s->recorded_date->datetime_yyyymmdd_hhmmss}->{$s->cutoff->code} = $s;
+            $all_surfaces->{$s->underlying_config->symbol}->{$s->recorded_date->datetime_yyyymmdd_hhmmss}->{$s->cutoff->code} = $s;
         }
     }
 
@@ -104,7 +115,7 @@ sub _get_surfaces_from_file {
 
         next ROW if (not $symbol);
 
-        my $underlying = BOM::Market::Underlying->new($symbol);
+        my $underlying_config = Quant::Framework::Utils::Test::create_underlying_config($symbol);
         my $cutoff = $row->[4] ? Quant::Framework::VolSurface::Cutoff->new($row->[4]) : undef;
 
         # skip past the two "config" lines; they don't tell
@@ -138,7 +149,7 @@ sub _get_surfaces_from_file {
         }
 
         my $args = {
-            underlying_config => $underlying->config,
+            underlying_config => $underlying_config,
             recorded_date     => $surface_date,
             print_precision   => undef,
             deltas            => [25, 50, 75],
@@ -147,8 +158,8 @@ sub _get_surfaces_from_file {
                 smile      => ['ON', 7, 14, 21, 30, 60, 90, 120, 150, 180, 270, 365],
                 vol_spread => ['ON', 7, 14, 21, 30, 60, 90, 120, 150, 180, 270, 365],
             },
-            chronicle_reader  => BOM::System::Chronicle::get_chronicle_reader(),
-            chronicle_writer  => BOM::System::Chronicle::get_chronicle_writer(),
+            chronicle_reader  => $self->chronicle_reader,
+            chronicle_writer  => $self->chronicle_writer,
         };
 
         $args->{cutoff} = $cutoff if $cutoff;

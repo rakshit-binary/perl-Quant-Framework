@@ -6,26 +6,38 @@ use Test::MockModule;
 use File::Spec;
 use JSON qw(decode_json);
 
-use BOM::Test::Data::Utility::UnitTestMarketData qw(:init);
+use Quant::Framework::Utils::Test;
+use Quant::Framework::VolSurface::Delta;
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
+my $underlying_config = Quant::Framework::Utils::Test::create_underlying_config('frxEURGBP');
+
+Quant::Framework::Utils::Test::create_doc(
     'volsurface_delta',
     {
-        symbol        => 'frxEURGBP',
+        underlying_config => $underlying_config,
         recorded_date => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'currency',
     {
         symbol => $_,
         date   => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     }) for (qw/EUR GBP/);
 
 use lib abs_path(dirname(__FILE__));
 use BloombergSurfaces;
 
-my $bbss = BloombergSurfaces->new(relative_data_dir => 'transform_to_cutoff');
+my $bbss = BloombergSurfaces->new({
+    relative_data_dir => 'transform_to_cutoff',
+    chronicle_reader => $chronicle_r,
+    chronicle_writer => $chronicle_w,
+  });
 
 subtest 'There and back.' => sub {
     plan tests => 2;
@@ -36,11 +48,13 @@ subtest 'There and back.' => sub {
 
     isnt($start->surface->{7}->{smile}->{25}, $there->{7}->{smile}->{25}, 'Vols on different cuts are different');
 
-    my $and_back = BOM::MarketData::VolSurface::Delta->new(
-        symbol        => 'frxEURGBP',
+    my $and_back = Quant::Framework::VolSurface::Delta->new(
+        underlying_config => $underlying_config,
         surface       => $there,
         cutoff        => 'Tokyo 15:00',
         recorded_date => $recorded_date,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     )->generate_surface_for_cutoff($start->cutoff);
 
     is_deeply($start->surface, $and_back, 'Transforming from one surface to another then back.');
@@ -187,10 +201,12 @@ subtest generate_default_transform_cut_list => sub {
         },
     };
 
-    my $s = BOM::MarketData::VolSurface::Delta->new(
+    my $s = Quant::Framework::VolSurface::Delta->new(
         surface       => $made_up_surface,
-        underlying    => BOM::Market::Underlying->new('frxEURGBP'),
+        underlying_config    => $underlying_config,
         recorded_date => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     );
 
     is(keys %{$s->surfaces_to_save}, 3, 'generates cutoff for default list');
@@ -198,9 +214,11 @@ subtest generate_default_transform_cut_list => sub {
     ok($s->document->{surfaces}->{'UTC 21:00'},      'has transformed UTC 21:00 surface');
     ok($s->document->{surfaces}->{'UTC 23:59'},      'has transformed UTC 23:59 surface');
 
-    my $new_s = BOM::MarketData::VolSurface::Delta->new(
-        underlying => BOM::Market::Underlying->new('frxEURGBP'),
-        cutoff     => 'Tokyo 15:00'
+    my $new_s = Quant::Framework::VolSurface::Delta->new(
+        underlying_config => $underlying_config,
+        cutoff     => 'Tokyo 15:00',
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     );
     ok($new_s->surface,                               'can get surface for different cutoff');
     ok($new_s->document->{surfaces}->{'Tokyo 15:00'}, 'has transformed Tokyo 15:00 surface');

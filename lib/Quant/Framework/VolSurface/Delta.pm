@@ -342,8 +342,24 @@ sub _build_surface {
         underlying_config => $self->underlying_config,
     );
     my $surface = $master_surface->generate_surface_for_cutoff($cutoff);
+    $self->_stores_surface($cutoff, $surface);
 
     return $surface;
+}
+
+sub _stores_surface {
+    my ($self, $cutoff, $surface_hashref) = @_;
+
+    try {
+      my $doc = $self->document;
+      $doc->{surfaces} ||= {};
+      $doc->{surfaces}->{$cutoff} = $surface_hashref;
+    }
+    catch {
+      warn('Could not save ' . $cutoff . ' cutoff for ' . $self->symbol);
+    };
+
+    return;
 }
 
 sub _extrapolate_smile_down {
