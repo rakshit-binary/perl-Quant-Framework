@@ -2,18 +2,19 @@ use Test::Most;
 use Test::FailWarnings;
 use JSON qw(decode_json);
 
-use BOM::MarketData::Fetcher::VolSurface;
+use Quant::Framework::Utils::Test;
 
-use BOM::Market::Underlying;
-use BOM::Test::Data::Utility::UnitTestMarketData qw( :init );
-use BOM::Test::Data::Utility::UnitTestRedis;
-
-my $ul = BOM::Market::Underlying->new('R_50');
+my $ul = Quant::Framework::Utils::Test::create_underlying_config('R_50');
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
 
 subtest "looks flat" => sub {
     plan tests => 630;
 
-    my $volsurface = BOM::MarketData::Fetcher::VolSurface->new->fetch_surface({underlying => $ul});
+    my $volsurface = Quant::Framework::VolSurface::Flat->new({
+        underlying_config => $ul,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
+      });
     for (0 .. 29) {
         my $days = rand(365);
         is(

@@ -69,7 +69,9 @@ WriteMakefile(
         SUFFIX   => 'gz',
     },
     clean => {FILES => 'Quant-Framework-*'},
-    test => { TESTS => $tests },
+    test => { 
+      RECURSIVE_TEST_FILES => 1,
+    },
 );
 
 {

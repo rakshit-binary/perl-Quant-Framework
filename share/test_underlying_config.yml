@@ -128,3 +128,23 @@ AS51:
     delta_premium_adjusted : 0
     delta_style : 'spot_delta'
   asset_class : 'index'
+R_50:
+  symbol: R_50
+  system_symbol: R_50
+  market_name: volidx
+  market_prefer_discrete_dividend: 0
+  quanto_only : 0
+  rate_to_imply_from : 'R_50'
+  volatility_surface_type : 'flat'
+  exchange_name : 'RANDOM'
+  locale : 'EN'
+  uses_implied_rate_for_asset : 0
+  uses_implied_rate_for_quoted_currency : 0
+  spot : 7378.12345
+  asset_symbol : 'R_50'
+  quoted_currency_symbol : ''
+  extra_vol_diff_by_delta : 5
+  market_convention:
+    delta_premium_adjusted : 0
+    delta_style : 'spot_delta'
+  asset_class : 'synthetic'
