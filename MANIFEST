@@ -91,4 +91,6 @@ t/VolSurface/Moneyness/error_check.t
 t/VolSurface/Moneyness/general.t
 t/VolSurface/Moneyness/get_volatility.t
 t/VolSurface/Moneyness/moneyness_spec.t
+t/VolSurface/utils.t
+t/VolSurface/validator.t
 t/weight_on.t
