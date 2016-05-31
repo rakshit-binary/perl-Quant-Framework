@@ -29,6 +29,7 @@ lib/Quant/Framework/VolSurface/Utils.pm
 lib/Quant/Framework/VolSurface/Validator.pm
 Makefile.PL
 MANIFEST			This list of files
+Quant-Framework-0.18.tar.gz
 README.md
 share/exchange.yml
 share/exchanges_trading_days_aliases.yml
@@ -56,8 +57,6 @@ t/tentative_events.t
 t/trades_on.t
 t/trading_calendar.t
 t/trading_calendar_caching.t
-t/validator.t
-t/vol_utils.t
 t/VolSurface/delta.t
 t/VolSurface/Delta/BloombergSurfaces.pm
 t/VolSurface/Delta/ClarkSurfaces.pm
