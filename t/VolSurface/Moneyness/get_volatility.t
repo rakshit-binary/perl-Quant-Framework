@@ -8,35 +8,37 @@ use Test::MockModule;
 use File::Spec;
 use JSON qw(decode_json);
 
-use BOM::Test::Runtime qw(:normal);
 use Date::Utility;
 use Scalar::Util qw(looks_like_number);
-use BOM::Market::Underlying;
-use BOM::MarketData::VolSurface::Moneyness;
-use BOM::Test::Data::Utility::UnitTestMarketData qw( :init );
-use BOM::Test::Data::Utility::UnitTestRedis qw(initialize_realtime_ticks_db);
+use Quant::Framework::Utils::Test;
+use Quant::Framework::VolSurface::Moneyness;
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
+my $underlying_config = Quant::Framework::Utils::Test::create_underlying_config('SPC');
+
+#instead of mocking Builder's *_rate_for, we set default rates here
+$underlying_config->{default_dividend_rate} = 0.5;
+$underlying_config->{default_interest_rate} = 0.5;
+
+Quant::Framework::Utils::Test::create_doc(
     'volsurface_moneyness',
     {
-        symbol        => 'SPC',
+        underlying_config => $underlying_config,
         recorded_date => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'currency',
     {
         symbol => $_,
         date   => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     }) for (qw/USD EUR/);
 
-initialize_realtime_ticks_db();
-
 my $recorded_date = Date::Utility->new;
-
-my $underlying = Test::MockObject::Extends->new(BOM::Market::Underlying->new('SPC'));
-$underlying->mock('interest_rate_for', sub { return 0.5 });
-$underlying->mock('dividend_rate_for', sub { return 0.5 });
 
 my $surface = {
     7 => {
@@ -61,11 +63,13 @@ my $surface = {
     },
 };
 
-my $v = BOM::MarketData::VolSurface::Moneyness->new(
+my $v = Quant::Framework::VolSurface::Moneyness->new(
     recorded_date  => $recorded_date,
-    underlying     => $underlying,
-    spot_reference => $underlying->spot,
+    underlying_config     => $underlying_config,
+    spot_reference => $underlying_config->spot,
     surface        => $surface,
+    chronicle_reader => $chronicle_r,
+    chronicle_writer => $chronicle_w,
 );
 
 subtest "get_vol for term structure that exists on surface" => sub {
@@ -92,10 +96,14 @@ subtest "get_vol for term structure that exists on surface" => sub {
 subtest 'Interpolating down.' => sub {
     plan tests => 1;
 
-    my $surface = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    my $underlying_config = Quant::Framework::Utils::Test::create_underlying_config('GDAXI');
+    my $surface = Quant::Framework::Utils::Test::create_doc(
         'volsurface_moneyness',
         {
+            underlying_config => $underlying_config,
             recorded_date => Date::Utility->new,
+            chronicle_reader => $chronicle_r,
+            chronicle_writer => $chronicle_w,
         });
 
     ok(
@@ -112,9 +120,11 @@ subtest 'Interpolating down.' => sub {
 subtest "get_vol for interpolated term structure" => sub {
     plan tests => 7;
 
-    my $surface = BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    my $underlying_config = Quant::Framework::Utils::Test::create_underlying_config('GDAXI');
+    my $surface = Quant::Framework::Utils::Test::create_doc(
         'volsurface_moneyness',
         {
+            underlying_config => $underlying_config,
             surface => {
                 7 => {
                     smile => {
@@ -124,6 +134,8 @@ subtest "get_vol for interpolated term structure" => sub {
                     }}
             },
             recorded_date => Date::Utility->new,
+            chronicle_reader => $chronicle_r,
+            chronicle_writer => $chronicle_w,
         });
 
     cmp_ok(scalar @{$surface->original_term_for_smile}, '==', 1, "Surface's original_term_for_smile.");
@@ -141,10 +153,9 @@ subtest "get_vol for interpolated term structure" => sub {
 };
 
 subtest "get_vol for a smile that has a single point" => sub {
-    plan
-        tests => 1,
+    plan tests => 1,
 
-        $v->clear_smile_points;
+    $v->clear_smile_points;
     $v = Test::MockObject::Extends->new($v);
     $v->mock('surface', sub { {7 => {smile => {80 => 0.1}}} });
     throws_ok { $v->get_volatility({days => 7, moneyness => 70}) } qr/cannot interpolate/i, "cannot interpolate with one point on smile";
@@ -154,11 +165,13 @@ subtest "get_vol for a smile that has a single point" => sub {
 subtest "get_vol for delta" => sub {
     plan tests => 10;
 
-    my $new_v = BOM::MarketData::VolSurface::Moneyness->new(
+    my $new_v = Quant::Framework::VolSurface::Moneyness->new(
         recorded_date  => $recorded_date,
-        underlying     => $underlying,
-        spot_reference => $underlying->spot,
+        underlying_config     => $underlying_config,
+        spot_reference => $underlying_config->spot,
         surface        => $surface,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     );
 
     ok(!exists $new_v->corresponding_deltas->{8}, "corresponding_deltas does not exist before request");
@@ -178,11 +191,13 @@ subtest "get_vol for delta" => sub {
 subtest 'get_vol for term less than the available term on surface' => sub {
     plan tests => 4;
 
-    my $volsurface = BOM::MarketData::VolSurface::Moneyness->new(
+    my $volsurface = Quant::Framework::VolSurface::Moneyness->new(
         recorded_date  => $recorded_date,
-        underlying     => $underlying,
-        spot_reference => $underlying->spot,
+        underlying_config     => $underlying_config,
+        spot_reference => $underlying_config->spot,
         surface        => $surface,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     );
 
     my $vol;
@@ -192,7 +207,5 @@ subtest 'get_vol for term less than the available term on surface' => sub {
     is($vol, $volsurface->surface->{7}->{smile}->{100}, "returns the correct vol from the smallest term's smile");
     lives_ok { $volsurface->get_market_rr_bf(1) } 'can get market_rr_bf for extrapolated smile';
 };
-
-$underlying->unmock('interest_rate_for')->unmock('dividend_rate_for');
 
 done_testing;
