@@ -235,3 +235,24 @@ frxEURGBP:
     delta_style : 'spot_delta'
     rr : 'call-put'
   asset_class : 'currency'
+IBEX35:
+  symbol: IBEX35
+  system_symbol: IBEX35
+  market_name: indices
+  market_prefer_discrete_dividend: 0
+  quanto_only : 0
+  rate_to_imply_from : 'EUR'
+  volatility_surface_type : 'moneyness'
+  exchange_name : 'BM'
+  locale : 'EN'
+  uses_implied_rate_for_asset : 0
+  uses_implied_rate_for_quoted_currency : 0
+  spot : 10069.30
+  asset_symbol : 'IBEX35'
+  quoted_currency_symbol : 'EUR'
+  extra_vol_diff_by_delta : 5
+  market_convention:
+    delta_premium_adjusted : 0
+    delta_style : 'spot_delta'
+  asset_class : 'index'
+

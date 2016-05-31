@@ -57,6 +57,8 @@ WriteMakefile(
         'Storable'                      => 0,
         'Number::Closest::XS'           => 0,
         'Scalar::Util'                  => 0,
+        'Text::SimpleTable'             => 0,
+        'Text::CSV'                     => 0,
         'Scalar::Util::Numeric'         => 0,
         'Math::Business::BlackScholes::Binaries' => 0,
         'Carp'                          => 0,
