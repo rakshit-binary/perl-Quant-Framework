@@ -255,4 +255,23 @@ IBEX35:
     delta_premium_adjusted : 0
     delta_style : 'spot_delta'
   asset_class : 'index'
-
+HSI:
+  symbol: HSI
+  system_symbol: HSI
+  market_name: indices
+  market_prefer_discrete_dividend: 0
+  quanto_only : 0
+  rate_to_imply_from : 'HKD'
+  volatility_surface_type : 'moneyness'
+  exchange_name : 'HKSE'
+  locale : 'EN'
+  uses_implied_rate_for_asset : 0
+  uses_implied_rate_for_quoted_currency : 0
+  spot : 7000.00
+  asset_symbol : 'HSI'
+  quoted_currency_symbol : 'HKD'
+  extra_vol_diff_by_delta : 5
+  market_convention:
+    delta_premium_adjusted : 0
+    delta_style : 'spot_delta'
+  asset_class : 'index'
