@@ -5,36 +5,41 @@ use Test::MockModule;
 use File::Spec;
 use JSON qw(decode_json);
 
-use BOM::Test::Runtime qw(:normal);
 use Date::Utility;
-use BOM::Market::Underlying;
-use BOM::MarketData::VolSurface::Moneyness;
-use BOM::Test::Data::Utility::UnitTestRedis;
-use BOM::Test::Data::Utility::UnitTestMarketData qw( :init );
+use Quant::Framework::Utils::Test;
+use Quant::Framework::VolSurface::Moneyness;
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
+my $underlying_config = Quant::Framework::Utils::Test::create_underlying_config('SPC');
+
+Quant::Framework::Utils::Test::create_doc(
     'volsurface_moneyness',
     {
-        symbol        => 'SPC',
+        underlying_config        => $underlying_config,
         recorded_date => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'currency',
     {
         symbol => 'USD',
         date   => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'index',
     {
         symbol => 'SPC',
         date   => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
 
 my $recorded_date = Date::Utility->new('12-Jun-11');
-my $underlying    = BOM::Market::Underlying->new('SPC');
 my $surface       = {
     7 => {
         smile => {
@@ -66,11 +71,13 @@ my $surface       = {
     },
 };
 
-my $v = BOM::MarketData::VolSurface::Moneyness->new(
-    underlying     => $underlying,
-    recorded_date  => $recorded_date,
-    surface        => $surface,
-    spot_reference => 101,
+my $v = Quant::Framework::VolSurface::Moneyness->new(
+  underlying_config        => $underlying_config,
+  recorded_date  => $recorded_date,
+  surface        => $surface,
+  spot_reference => 101,
+  chronicle_reader => $chronicle_r,
+  chronicle_writer => $chronicle_w,
 );
 
 subtest "can get volatility for strike, delta, and moneyness" => sub {
@@ -82,28 +89,34 @@ subtest "can get volatility for strike, delta, and moneyness" => sub {
 
 subtest "cannot get volatility when underlying spot is undef" => sub {
     plan tests => 4;
-    BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+    Quant::Framework::Utils::Test::create_doc(
         'volsurface_moneyness',
         {
-            symbol         => 'SPC',
+            underlying_config        => $underlying_config,
             spot_reference => 101,
             recorded_date  => Date::Utility->new,
+            chronicle_reader => $chronicle_r,
+            chronicle_writer => $chronicle_w,
         });
     throws_ok {
-        BOM::MarketData::VolSurface::Moneyness->new(
-            underlying     => $underlying,
+      Quant::Framework::VolSurface::Moneyness->new(
+            underlying_config        => $underlying_config,
             recorded_date  => $recorded_date,
             surface        => $surface,
             spot_reference => undef,
+            chronicle_reader => $chronicle_r,
+            chronicle_writer => $chronicle_w,
         );
     }
     qr/Attribute \(spot_reference\) does not pass the type constraint/, 'cannot get_volatility when spot for underlying is undef';
     my $v_new2;
     lives_ok {
-        $v_new2 = BOM::MarketData::VolSurface::Moneyness->new(
-            underlying    => $underlying,
+        $v_new2 = Quant::Framework::VolSurface::Moneyness->new(
+            underlying_config    => $underlying_config,
             recorded_date => $recorded_date,
             surface       => $surface,
+            chronicle_reader => $chronicle_r,
+            chronicle_writer => $chronicle_w,
         );
     }
     'creates moneyness surface without spot reference';
