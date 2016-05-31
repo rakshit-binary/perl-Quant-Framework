@@ -6,13 +6,12 @@ use Test::MockModule;
 use File::Spec;
 use JSON qw(decode_json);
 
-use BOM::Test::Runtime qw(:normal);
-use Cache::RedisDB;
 use Date::Utility;
-use BOM::Market::Underlying;
-use BOM::MarketData::VolSurface::Moneyness;
-use BOM::Test::Data::Utility::UnitTestMarketData qw(:init);
-use BOM::Test::Data::Utility::UnitTestRedis;
+use Quant::Framework::Utils::Test;
+use Quant::Framework::VolSurface::Moneyness;
+
+my ($chronicle_r, $chronicle_w) = Data::Chronicle::Mock::get_mocked_chronicle();
+my $underlying_config = Quant::Framework::Utils::Test::create_underlying_config('IBEX35');
 
 my $when = Date::Utility->new;
 
@@ -33,34 +32,33 @@ my $q = {
     365 => 0.065841,
 };
 
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'currency',
     {
         symbol => 'EUR',
         rates  => $r,
         date   => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'index',
     {
         symbol => 'IBEX35',
         date   => Date::Utility->new,
-        rates  => $q
+        rates  => $q,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
-BOM::Test::Data::Utility::UnitTestMarketData::create_doc(
+Quant::Framework::Utils::Test::create_doc(
     'volsurface_delta',
     {
-        symbol        => 'IBEX35',
+        underlying_config => $underlying_config,
         recorded_date => Date::Utility->new,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     });
-my $redis_data = {
-    IBEX35 => {
-        epoch => $when->epoch,
-        quote => '7099.7',
-    },
-};
 
-Cache::RedisDB->set('COMBINED_REALTIME', 'IBEX35', $redis_data->{IBEX35});
 subtest "convert moneyness to delta" => sub {
     plan tests => 6;
 
@@ -98,12 +96,13 @@ subtest "convert moneyness to delta" => sub {
     };
 
     my $recorded_date = Date::Utility->new;
-    my $underlying    = BOM::Market::Underlying->new('IBEX35');
-    my $v             = BOM::MarketData::VolSurface::Moneyness->new(
-        underlying     => $underlying,
+    my $v             = Quant::Framework::VolSurface::Moneyness->new(
+        underlying_config     => $underlying_config,
         recorded_date  => $recorded_date,
         surface        => $surface,
-        spot_reference => $underlying->spot,
+        spot_reference => 7099.7,
+        chronicle_reader => $chronicle_r,
+        chronicle_writer => $chronicle_w,
     );
 
     lives_ok { $v->_convert_moneyness_smile_to_delta(7) } "can convert moneyness smile to delta smile";

@@ -14,7 +14,7 @@ use Moose;
 extends 'Quant::Framework::VolSurface';
 
 use Date::Utility;
-use Quant::Framework::VolSurface::Utils qw(get_delta_for_strike get_strike_for_moneyness);
+use VolSurface::Utils qw(get_delta_for_strike get_strike_for_moneyness);
 use Try::Tiny;
 use Math::Function::Interpolator;
 use List::MoreUtils qw(indexes);
@@ -339,7 +339,7 @@ sub _convert_strike_to_delta {
         spot             => $self->spot_reference,
         r_rate           => $builder->interest_rate_for($tiy),
         q_rate           => $builder->dividend_rate_for($tiy),
-        premium_adjusted => $builder->market_convention->{delta_premium_adjusted},
+        premium_adjusted => $self->underlying_config->market_convention->{delta_premium_adjusted},
     });
 }
 
