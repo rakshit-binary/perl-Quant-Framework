@@ -28,6 +28,12 @@ use Quant::Framework::VolSurface::Validator;
 use Quant::Framework::VolSurface::Utils;
 use Quant::Framework::Utils::Builder;
 
+=head2 for_date
+
+The date for which we want to have the volatility surface data
+
+=cut
+
 has for_date => (
     is      => 'ro',
     isa     => 'Maybe[Date::Utility]',
@@ -82,7 +88,7 @@ sub _build_builder {
 
 =head2 symbol
 
-The symbol of the underlying that this surface is for.
+The symbol of the underlying that this surface is for (e.g. frxUSDJPY)
 
 =cut
 
@@ -404,6 +410,12 @@ sub _build_effective_date {
 
 # PRIVATE ATTRIBUTES:
 
+=head2 _new_surface
+
+A flag which determines whether this surface is a newly created surface or a one which is read from historical data.
+
+=cut
+
 has _new_surface => (
     is      => 'ro',
     default => 0,
@@ -436,6 +448,13 @@ has _ON_day => (
     isa        => 'Int',
     lazy_build => 1,
 );
+
+=head2
+
+Returns the day for over-night tenor of this surface 
+ON = over-night
+
+=cut
 
 sub _build__ON_day {
     my $self = shift;
@@ -611,6 +630,7 @@ sub get_smile_spread {
 
         foreach my $day (keys %{$surface}) {
 
+            #check and add min_vol_spread for shorter term vol_spreads
             if ($day < 30 and grep { $_ == $day } @market_points) {
 
                 if (exists $surface->{$day}->{atm_spread}
@@ -1200,36 +1220,10 @@ sub _extrapolate_smile {
     return $self->$extrapolation_method($seek);
 }
 
-sub _get_initial_rr {
-    my ($self, $market) = @_;
-
-    my %initial_rr;
-    my $rr_adjustment;
-    if ($self->_market_name eq 'indices') {
-        $rr_adjustment = {
-            rr_25 => -0.04047,
-            rr_10 => 0.07689
-        };
-        $initial_rr{RR_25} = $rr_adjustment->{rr_25} * $market->{ATM};
-        $initial_rr{RR_10} = $rr_adjustment->{rr_10} * $market->{ATM}
-            if (exists $market->{RR_10});
-    } else {
-        $rr_adjustment = {
-            rr_25 => 0.1,
-            rr_10 => 0.1
-        };
-        $initial_rr{RR_25} = $rr_adjustment->{rr_25} * $market->{RR_25};
-        $initial_rr{RR_10} = $rr_adjustment->{rr_10} * $market->{RR_10}
-            if (exists $market->{RR_10});
-    }
-
-    return \%initial_rr;
-}
-
 sub _extrapolate_smile_up {
     my $self = shift;
 
-# This is not an ideal solution and we currently don't offer more than 1 year bet.
+# This is not an ideal solution and duration of contracts is not supposed to be more than 1 year
 # But, you'll get a 1 year smile if the unexpected happens :-P
     my @amp = @{$self->original_term_for_smile};
     return $self->surface->{$amp[-1]}->{smile};
@@ -1251,7 +1245,7 @@ sub _get_days_for_expiry_date {
 # expiry_date gives us what we want.
 #
 # However, due to vol-cuts logic cutting to wherever the cut time falls within the
-# effective day of the vol, and due to our FX end-of-day being at GMT23:59, we
+# effective day of the vol, and due to FX end-of-day being at GMT23:59, we
 # cut the vol back into the previous GMT day, e.g. we cut the NY1000 vol for contracts
 # expiring on the 24th back to GMT23:59 on the 23rd. This means that if we ask
 # for a vol for the 23rd, and the underling closes after NY1700, we need to use the
