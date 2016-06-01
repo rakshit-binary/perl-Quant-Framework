@@ -53,6 +53,8 @@ has flat_vol => (
 sub _build_flat_vol {
   my $self = shift;
 
+  die "Flat volatility needs a default_volatility in the underlying_config[". $self->symbol . "]" if not defined $self->underlying_config->default_volatility;
+
   return $self->underlying_config->default_volatility;
 }
 
