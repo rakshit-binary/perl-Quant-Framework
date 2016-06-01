@@ -1225,14 +1225,7 @@ sub _get_initial_rr {
 
     my %initial_rr;
     my $rr_adjustment;
-    if ($self->_market_name eq 'indices') {
-        $rr_adjustment = {
-            rr_25 => -0.04047,
-            rr_10 => 0.07689
-        };
-        $initial_rr{RR_25} = $rr_adjustment->{rr_25} * $market->{ATM};
-        $initial_rr{RR_10} = $rr_adjustment->{rr_10} * $market->{ATM} if (exists $market->{RR_10});
-    } else {
+    if ($self->_market_name neq 'indices') {
         $rr_adjustment = {
             rr_25 => 0.1,
             rr_10 => 0.1
