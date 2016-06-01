@@ -70,10 +70,51 @@ my $rates = $ir_data->rates;
 ``` 
  
 ##Quant::Framework::Asset
+
+Assets have a symbol and rates. Example assets are currencies, indices, stocks
+and commodities.
+
+
 ##Quant::Framework::Currency
+
+The representation of currency within our system
+
+```
+my $currency = Quant::Framework::Currency->new({ symbol => 'AUD'});
+```
+
 ##Quant::Framework::CorrelationMatrix
+
+Correlations have an index, a currency, and duration that corresponds
+to a correlation. An example of a correlation is SPC, AUD, 1M, with
+a correlation of 0.42.
+The values can be updated through backoffice's Quant Market Data page.
+
+
 ##Quant::Framework::Dividend
+
+This module saves/loads dividends data to/from Chronicle. 
+To save dividends for a company:
+
+```
+my $corp_dividends = Quant::Framework::Dividends->new(symbol => $symbol,
+        rates => { 1 => 0, 2 => 1, 3=> 0.04 }
+        discrete_points => { '2015-04-24' => 0, '2015-09-09' => 0.134 });
+$corp_dividends->save;
+```
+
+To read dividends information for a company:
+
+```
+my $corp_dividends = Quant::Framework::Dividends->new(symbol => $symbol);
+
+my $rates = $corp_dividends->rates;
+my $disc_points = $corp_dividends->discrete_points;
+```
+
 ##Quant::Framework::EconomicEventsCalendar
+
+
 ##Quant::Framework::Exchange
 ##Quant::Framework::Holiday
 ##Quant::Framework::PartialTrading
