@@ -10,8 +10,6 @@ Base class for all volatility surfaces.
 
 =cut
 
-use 5.010;
-
 use Moose;
 use Try::Tiny;
 use DateTime::TimeZone;
@@ -124,6 +122,8 @@ sub _build_recorded_date {
     my $self          = shift;
     my $recorded_date = Date::Utility->new($self->document->{date});
 
+    #for a flat volatility surface, we assume it is always fresh with date equal to now or the date for which 
+    #we want to fetch the surface (because it never changes)
     if ($self->type eq 'flat') {
         $recorded_date = $self->for_date // Date::Utility->new;
     }
@@ -147,14 +147,14 @@ has type => (
 
 =head2 surface
 
-Stores the represented surface as a data structure. Required and read-only.
+Stores the represented surface as a data structure (read-only).
 
 Term structures of CALL delta or moneyness to annualized volatilities.
 
 =cut
 
 has surface => (
-    is         => 'rw',
+    is         => 'ro',
     isa        => 'HashRef',
     lazy_build => 1,
 );
@@ -410,12 +410,7 @@ sub _build_effective_date {
 
 # PRIVATE ATTRIBUTES:
 
-=head2 _new_surface
-
-A flag which determines whether this surface is a newly created surface or a one which is read from historical data.
-
-=cut
-
+#A flag which determines whether this surface is a newly created surface or a one which is read from historical data.
 has _new_surface => (
     is      => 'ro',
     default => 0,
@@ -449,13 +444,8 @@ has _ON_day => (
     lazy_build => 1,
 );
 
-=head2
-
-Returns the day for over-night tenor of this surface 
-ON = over-night
-
-=cut
-
+#Returns the day for over-night tenor of this surface 
+#ON = over-night
 sub _build__ON_day {
     my $self = shift;
 
@@ -697,8 +687,9 @@ sub _compute_and_set_smile_spread {
 
 =head2 set_smile_spread
 
-#TODO: complete this
-sets smile spread for the given tenor
+sets smile spread for the given tenor. Input should be a hash-ref with below items:
+- days: Tenor for which smile_spread needs to be set.
+- smile_spread
 
 =cut
 
@@ -1220,6 +1211,7 @@ sub _extrapolate_smile {
     return $self->$extrapolation_method($seek);
 }
 
+#returns initial risk reversal as a hash-ref
 sub _get_initial_rr {
     my ($self, $market) = @_;
 
@@ -1244,8 +1236,8 @@ sub _extrapolate_smile_up {
 
 # This is not an ideal solution and duration of contracts is not supposed to be more than 1 year
 # But, you'll get a 1 year smile if the unexpected happens :-P
-    my @amp = @{$self->original_term_for_smile};
-    return $self->surface->{$amp[-1]}->{smile};
+    my $last_term = $self->original_term_for_smile->[-1];
+    return $self->surface->{$last_term}->{smile};
 }
 
 sub _get_extrapolate_direction {
@@ -1321,6 +1313,7 @@ sub set_smile {
 =head2 get_rr_bf_for_smile
 
 Return the rr and bf values for a given smile
+For more info see: https://en.wikipedia.org/wiki/Risk_reversal and https://en.wikipedia.org/wiki/Butterfly_(options)
 
 =cut
 
@@ -1384,7 +1377,7 @@ sub set_smile_flag {
 
 =head2 get_smile_flag
 
-Get the flag for a specific smile.
+Get the flag (as an array-ref) for a specific smile.
 
 A flag means there is an error/irregularity of the smile/quote too old/ etc.
 
@@ -1405,6 +1398,7 @@ sub get_smile_flag {
 =head2 get_smile_flags
 
 Get all flags of the surface. Takes no args.
+Return value is a string in the format "day1:flag1;day2:flag2;day3:flag3..." 
 
 =cut
 

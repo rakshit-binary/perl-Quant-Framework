@@ -28,6 +28,8 @@ the coercion rule is here.
 
 =head2 code
 
+Cutoff code denoting timezone of cutoff (e.g. New York 10:00)
+
 =cut
 
 has code => (
@@ -89,7 +91,7 @@ sub _build_timezone {
         'Beijing'      => 'Asia/Shanghai',
         'Bucharest'    => 'Europe/Bucharest',
         'Budapest'     => 'Europe/Budapest',
-        'Colombia'     => 'America/Bogota',        # is this correct?
+        'Colombia'     => 'America/Bogota',        
         'Frankfurt'    => 'Europe/Berlin',
         'Hanoi'        => 'Asia/Ho_Chi_Minh',
         'Istanbul'     => 'Europe/Istanbul',
@@ -101,7 +103,6 @@ sub _build_timezone {
         'Moscow'       => 'Europe/Moscow',
         'Mumbai'       => 'Asia/Kolkata',
         'New York'     => 'America/New_York',
-        # 'PTAX (Ask)'   => 'PTAX (Ask)',            # what is this?
         'Santiago'   => 'America/Santiago',
         'Sao Paulo'  => 'America/Sao_Paulo',
         'Seoul'      => 'Asia/Seoul',
