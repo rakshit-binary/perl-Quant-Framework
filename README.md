@@ -114,10 +114,40 @@ my $disc_points = $corp_dividends->discrete_points;
 
 ##Quant::Framework::EconomicEventsCalendar
 
+Represents an economic event in the financial market
+
+```
+     my $eco = Quant::Framework::EconomicEventCalendar->new({
+        recorded_date => $dt,
+        events => $arr_events
+     });
+```
 
 ##Quant::Framework::Exchange
+
+Quant::Framework::Exchange - A module to save/load exchange information
+
 ##Quant::Framework::Holiday
+
+A module to save/load market holidays
+
 ##Quant::Framework::PartialTrading
+
+Partial trading means times when an exchange is opened later than usual (late\_open) or closed earlier than usual (early\_close).
+
 ##Quant::Framework::TradingCalendar
+
+This module is responsible about everything related to time-based status of an exchange (whether exchange is open/closed, has holiday, is partially open, ...)
+Plus all related helper modules (trading days between two days where exchange is open, trading breaks, DST effect, open/close time, ...).
+One important feature of this module is that it is designed for READING information not writing.
+
+```
+my $calendar = Quant::Framework::TradingCalendar->new('LSE');
+```
+
 ##Quant::Framework::ExpiryConventions
+
+
 ##Quant::Framework::VolSurface
+
+Base class for all volatility surfaces.
