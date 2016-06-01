@@ -1,5 +1,4 @@
 use Test::Most;
-use Test::FailWarnings;
 use Test::MockModule;
 use File::Spec;
 use JSON qw(decode_json);

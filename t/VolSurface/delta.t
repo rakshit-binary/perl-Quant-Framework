@@ -6,7 +6,6 @@ use Test::Most;
 
 use List::Util qw( max );
 use Test::MockObject::Extends;
-use Test::FailWarnings;
 use Test::Warn;
 use Scalar::Util qw( looks_like_number );
 use Test::MockModule;
