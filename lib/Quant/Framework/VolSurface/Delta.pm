@@ -362,6 +362,46 @@ sub _stores_surface {
     return;
 }
 
+sub _extrapolate_smile_down {
+    my ($self, $days) = @_;
+
+    my $first_market_point = $self->original_term_for_smile->[0];
+    return $self->surface->{$first_market_point}->{smile} if $self->_market_name eq 'indices';
+    my $market     = $self->get_market_rr_bf($first_market_point);
+    my %initial_rr = %{$self->_get_initial_rr($market)};
+
+    # we won't be using the indices case unless we revert back to delta surfaces
+    my %rr_bf = (
+        ATM   => $market->{ATM},
+        BF_25 => $market->{BF_25},
+    );
+    $rr_bf{BF_10} = $market->{BF_10} if (exists $market->{BF_10});
+
+    # Only RR is interpolated at this point.
+    # Data structure is here in case that changes, plus it's easier to understand.
+    foreach my $which (keys %initial_rr) {
+        my $interp = Math::Function::Interpolator->new(
+            points => {
+                $first_market_point => $market->{$which},
+                0                   => $initial_rr{$which},
+            });
+        $rr_bf{$which} = $interp->linear($days);
+    }
+
+    my $extrapolated_smile->{smile} = {
+        25 => $rr_bf{RR_25} / 2 + $rr_bf{BF_25} + $rr_bf{ATM},
+        50 => $rr_bf{ATM},
+        75 => $rr_bf{BF_25} - $rr_bf{RR_25} / 2 + $rr_bf{ATM},
+    };
+
+    if (exists $market->{RR_10}) {
+        $extrapolated_smile->{smile}->{10} = $rr_bf{RR_10} / 2 + $rr_bf{BF_10} + $rr_bf{ATM};
+        $extrapolated_smile->{smile}->{90} = $rr_bf{RR_10} / 2 + $rr_bf{BF_10} + $rr_bf{ATM};
+    }
+
+    return $extrapolated_smile->{smile};
+}
+
 =head2 clone
 
 USAGE:

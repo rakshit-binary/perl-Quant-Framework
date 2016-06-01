@@ -1220,6 +1220,32 @@ sub _extrapolate_smile {
     return $self->$extrapolation_method($seek);
 }
 
+sub _get_initial_rr {
+    my ($self, $market) = @_;
+
+    my %initial_rr;
+    my $rr_adjustment;
+    if ($self->_market_name eq 'indices') {
+        $rr_adjustment = {
+            rr_25 => -0.04047,
+            rr_10 => 0.07689
+        };
+        $initial_rr{RR_25} = $rr_adjustment->{rr_25} * $market->{ATM};
+        $initial_rr{RR_10} = $rr_adjustment->{rr_10} * $market->{ATM} if (exists $market->{RR_10});
+    } else {
+        $rr_adjustment = {
+            rr_25 => 0.1,
+            rr_10 => 0.1
+        };
+        $initial_rr{RR_25} = $rr_adjustment->{rr_25} * $market->{RR_25};
+        $initial_rr{RR_10} = $rr_adjustment->{rr_10} * $market->{RR_10} if (exists $market->{RR_10});
+    }
+
+    return \%initial_rr;
+}
+
+
+
 sub _extrapolate_smile_up {
     my $self = shift;
 

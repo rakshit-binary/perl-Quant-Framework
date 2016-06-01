@@ -343,6 +343,14 @@ sub _convert_strike_to_delta {
     });
 }
 
+sub _extrapolate_smile_down {
+    my $self = shift;
+
+    my $first_market_point = $self->original_term_for_smile->[0];
+
+    return $self->surface->{$first_market_point}->{smile};
+}
+
 =head2 clone
 
 USAGE:
