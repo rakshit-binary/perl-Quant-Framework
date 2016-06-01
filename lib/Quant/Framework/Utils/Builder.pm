@@ -357,7 +357,7 @@ sub weight_on {
 
 =head2 closed_weight
 
-The weight given to a day when the underlying is closed.
+Weights assigned for days when the markets are closed, based on empirical study and industry standards.
 
 =cut
 
