@@ -109,33 +109,6 @@ sub create_underlying_config {
     my $data    = $fixture->{$symbol};
 
     return Quant::Framework::Utils::UnderlyingConfig->new($data);
-
-    return Quant::Framework::Utils::UnderlyingConfig->new({
-        symbol                                => $symbol,
-        system_symbol                         => $symbol,
-        market_name                           => 'indices',
-        market_prefer_discrete_dividend       => 0,
-        quanto_only                           => 0,
-        rate_to_imply_from                    => 'EUR',
-        volatility_surface_type               => 'moneyness',
-        exchange_name                         => 'FSE',
-        locale                                => 'EN',
-        uses_implied_rate_for_asset           => 0,
-        uses_implied_rate_for_quoted_currency => 0,
-        spot                                  => 10071.94,
-        asset_symbol                          => 'GDAXI',
-        quoted_currency_symbol                => 'EUR',
-        extra_vol_diff_by_delta               => 5,
-        market_convention                     => {
-          delta_premium_adjusted => 0,
-          delta_style => 'spot_delta',
-        },
-        asset_class                           => 'index',
-        default_interest_rate                 => undef,
-        default_dividend_rate                 => undef,
-        default_volatility_duration           => undef,
-        default_volatility                    => undef,
-      }) if $symbol eq 'GDAXI';
 }
 
 1;
