@@ -1225,7 +1225,7 @@ sub _get_initial_rr {
 
     my %initial_rr;
     my $rr_adjustment;
-    if ($self->_market_name neq 'indices') {
+    if ($self->_market_name ne 'indices') {
         $rr_adjustment = {
             rr_25 => 0.1,
             rr_10 => 0.1
