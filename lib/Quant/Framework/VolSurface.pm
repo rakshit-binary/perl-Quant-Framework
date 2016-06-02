@@ -1062,7 +1062,7 @@ sub get_volatility {
 
     $self->_validate_sought_values($days, $sought_point);
 
-    if ((grep { $self->_market_name eq $_ } (qw(sectors)))
+    if (($self->_market_name eq 'sectors')
         and not grep { $days eq $_ } @{$self->original_term_for_smile})
     {
 
