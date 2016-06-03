@@ -1014,9 +1014,9 @@ sub _market_maturities_interpolation_function {
     my $effective_date = $self->effective_date;
 
     my %dates = (
-        T  => $effective_date->plus_time_interval($T . 'd'),
-        T1 => $effective_date->plus_time_interval($T1 . 'd'),
-        T2 => $effective_date->plus_time_interval($T2 . 'd'),
+        T  => $effective_date->plus_time_interval($T - 1 . 'd23h59m59s'),
+        T1 => $effective_date->plus_time_interval($T1 - 1 . 'd23h59m59s'),
+        T2 => $effective_date->plus_time_interval($T2 - 1 . 'd23h59m59s'),
     );
 
     my $tau1       = $self->builder->weighted_days_in_period($dates{T1}, $dates{T}) / 365;

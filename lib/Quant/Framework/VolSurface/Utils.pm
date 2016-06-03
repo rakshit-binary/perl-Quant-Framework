@@ -58,7 +58,7 @@ Returns 1 if given date-time is before roll-over time.
 sub is_before_rollover {
     my ($self, $date) = @_;
 
-    return ($date->is_before($self->NY1700_rollover_date_on($date))) ? 1 : 0;
+    return ($date->is_after($self->NY1700_rollover_date_on($date))) ? 0 : 1;
 }
 no Moose;
 __PACKAGE__->meta->make_immutable;
