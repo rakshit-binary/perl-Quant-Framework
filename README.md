@@ -145,9 +145,46 @@ my $is_holiday = $currency->has_holiday_on(Date::Utility->new('2016-1-1');
 
 ##Quant::Framework::CorrelationMatrix
 
-Correlations have an index, a currency, and duration that corresponds
-to a correlation. An example of a correlation is SPC, AUD, 1M, with
-a correlation of 0.42.
+Correlation matrix is a 2-D array which shows correlation between indices and currencies for different time periods.
+Rows of the matrix represent different currencies (e.g. AUD, USD, ...). Columns represent indices (e.g. DJI) and for each cell of the matrix, there is a list of correlations for different time period (e.g. 3 months, 6 months, ...).
+
+This modules is used to load/save a correlation matrix and query for correlations. It relies on `Quant::Framework::ExpiryConventions` to do its calculations.
+
+To save a correlation matrix:
+
+```
+my $matrix = Quant::Framework::CorrelationMatrix->new(
+            symbol => 'indices',
+            chronicle_writer => $chronicle_w
+            );
+            
+#Input data for correlation matrix should be initialized like this:
+my $data = ();
+
+$data->{'DJI'}->{'AUD'}->{'3M'} = 0.3;
+$data->{'DJI'}->{'JPY'}->{'6M'} = 0.12;
+$data->{'DJI'}->{'GBP'}->{'12M'} = 0.83;
+
+$matrix->correlations($data);
+$matrix->save;
+
+```
+
+To load correlation matrix and query information:
+
+```
+my $matrix = Quant::Framework::CorrelationMatrix->new(
+            symbol => 'indices',
+            chronicle_reader => $chronicle_r
+            );
+            
+my $time_in_years = 0.5;
+
+#This will return a floating number representing the correlation between DJI index and AUD currency
+#over a 6-month period.
+my $correlation = $matrix->correlation_for('DJI', 'AUD', $time_in_years, $expiry_conventions);
+
+```
 
 ##Quant::Framework::Dividend
 
