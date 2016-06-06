@@ -101,16 +101,46 @@ my $rates = $ir_data->rates;
  
 ##Quant::Framework::Asset
 
-Assets have a symbol and rates. Example assets are currencies, indices, stocks
-and commodities.
+An asset is anything which has value and can be bought and sold. For example in a forex currency pair (EUR/USD) you will be paying/receiving USD when you buy/sell EUR. So here EUR is the asset. Also for indices or stocks you will be paying domestic currency to buy units of index or stock. So Index or Stock are assets.
 
+This module can be used to read dividend rates for an asset. You will need to pass symbol name when instantiating the module.
+
+To instantiate an asset module and read dividend rates:
+
+```
+my $asset = Quant::Framework::Asset->new(
+            symbol => 'AEX',
+            chronicle_reader => $chronicle_r
+            );
+            
+#here $time_in_years is the duration for which we need to get dividend rates.
+my $rates = $asset->rate_for($time_in_years);
+```
 
 ##Quant::Framework::Currency
 
-The representation of currency.
+The representation of currency. You can use this module to query for a currency's interest rates, holidays and query for already saved implied interest rates. This module relies on `Quant::Framework::Holiday` to fetch holiday information for it's currency.
+
+Below example shows how to create instances of this module and query information from that module:
 
 ```
-my $currency = Quant::Framework::Currency->new({ symbol => 'AUD'});
+my $currency = Quant::Framework::Currency->new(
+            symbol => 'AUD',
+            chronicle_reader => $chronicle_r
+);
+
+#here $time_in_years is the duration for which we need to get dividend rates.
+my $rates = $currency->rate_for($time_in_years);
+
+#this call will return a hash-reference whose keys are number of days since epoch and value is description 
+#of the holiday.
+my $holidays = $currency->holidays;
+
+#this will return a floating number (0 if the days is holiday, 0.5 if it's a pseudo-holiday 
+# and 1 if it's a normal trading day)
+my $weight = $currency->weight_on(Date::Utility->new('2016-03-21'));
+
+my $is_holiday = $currency->has_holiday_on(Date::Utility->new('2016-1-1');
 ```
 
 ##Quant::Framework::CorrelationMatrix
