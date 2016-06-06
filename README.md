@@ -228,18 +228,91 @@ my $sixmonth_rate = $dividends->rate_for($time_in_years);
 
 ##Quant::Framework::EconomicEventsCalendar
 
-Represents an economic event in the financial market
+Represents a calendar of important economic announcement made by central banks (e.g. Unemployment Rate or CPI).
+An instance of this module will contain all economic announcement for all underlyings.
+
+To save economic events:
 
 ```
-     my $eco = Quant::Framework::EconomicEventCalendar->new({
-        recorded_date => $dt,
-        events => $arr_events
-     });
+my $calendar = Quant::Framework::EconomicEventCalendar->new({
+            recorded_date => $dt,
+            #events is a list of hash-refs each containing an economic event
+            events => [
+            {
+                source => 'net',
+                event_name => 'Labor Market Conditions Index m/m',
+                symbol => 'USD',
+                release_date => 1465221600, #this is epoch of the release date-time
+                recorded_date => Date::Utility->new->epoch, #this is epoch of the time when this record is being saved
+                impact => 1  #importance of this event (1 = low impact, 3 = medium impact, 5 = high impact)
+            },
+            {
+                source => 'net',
+                event_name => 'Cash Rate',
+                symbol => 'AUD',
+                release_date => 1465273800,
+                recorded_date => Date::Utility->new->epoch, 
+                impact => 3
+            },
+            {
+                source => 'net',
+                event_name => 'Announcement1',
+                symbol => 'JPY',
+                release_date => 1465273600,
+                recorded_date => Date::Utility->new->epoch, 
+                impact => 5,
+                is_tentative => 1,
+            },
+            ],
+            chronicle_writer => $chronicle_w
+});
+$calendar->save;
+```
+
+To read an economic event calendar:
+
+```
+my $calendar = Quant::Framework::EconomicEventCalendar->new(
+            chronicle_reader => $chronicle_r
+            );
+my @events = @{$calendar->events};
+#first_event will be a hash-ref with same structure as the one we used to save economic events.
+my $first_event = $events[0];
+
+#here we fetch all economic events whose release_date lies inside the given time period
+my $events = $calendar->get_latest_events_for_period(
+            from => Date::Utility->new('2015-01-10'),
+            to => Date::Utility->new('2015-01-20')
+);
+
+#get a list of tentative economic events
+my $tentatives = $calendar->get_tentative_events;
+            
 ```
 
 ##Quant::Framework::Exchange
 
-Quant::Framework::Exchange - A module to save/load exchange information
+Each underlying can only be traded in a specific exchange. As a result of this, some properties of the exchange (e.g. Openning or closing time or holidays) will affect when/how an underlying is being traded.
+
+This module represents basic information about an exchange. More specific information about an exchange (including open/close times) can be get using `TradingCalendar` module. The information you get from this module are stored in the `exchange.yml` file stored in `share` directory of this repository.
+
+To read an exchange information:
+```
+my $exchange = Quant::Framework::Exchange->new(
+            symbol => 'NASDAQ',
+);
+
+my $name = $exchange->display_name;
+my $currency = $exchange->currency;
+my $timezone = $exchange->trading_timezone;
+
+#value of trading_days can be:
+# everyday -> 7 days a week
+# weekdays -> 5 week-days of week (excluding weekends)
+#sun_thru_thu -> from Sunday to Thursday
+my $trading_days = $exchange->trading_days;
+
+```
 
 ##Quant::Framework::Holiday
 
