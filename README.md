@@ -33,42 +33,68 @@ $corp->save();
 
 Interest rate is the amount of interest paid for deposit money. This can be defined for different periods and different currencies. So we can have different interest rates for each combination of currency and period. Usually interest rates are described as a percentage. For example a 1% interest rate for a period of 1 year for USD currency means you will get 1.01 times your initial deposit money after one years. For more informatio please refer to [Interest rate](https://en.wikipedia.org/wiki/Interest_rate).
 
-This module helps you save/load interest rates to/from a Data::Chronicle storage system. When creating an instance of this module you will need to specify symbol (The name of the currency for which you want to save/load interest rate) and a hash-ref named rates. Rates is a hash-table where key is duration (period in days) and the corresponding value is the interest rate percentage paid after that duration.
+This module helps you save/load interest rates to/from a `Data::Chronicle` storage system. When creating an instance of this module you will need to specify symbol (The name of the currency for which you want to save/load interest rate) and a hash-ref named rates. Rates is a hash-table where key is duration (period in days) and the corresponding value is the interest rate percentage paid after that duration.
 
 To save interest rates:
 
 ```
 #Here USD is the currency, "7, 30 and 90" are durations and corresponding values "0.5, 1.2 and 2.4" are interest rates
 
-my $ir_data = Quant::Framework::InterestRate->new(symbol => 'USD',
-        rates => { 7 => 0.5, 30 => 1.2, 90 => 2.4 });
+my $ir_data = Quant::Framework::InterestRate->new(
+            symbol => 'USD',
+            rates => { 
+                        7 => 0.5, 
+                        30 => 1.2, 
+                        90 => 2.4 
+                     },
+            chronicle_writer => $chronicle_w
+            );
+            
 $ir_data->save;
 ```
 
 To load interest rates for a currency:
 
 ```
-my $ir_data = Quant::MarketData::InterestRate->new(symbol => 'USD');
+my $ir_data = Quant::MarketData::InterestRate->new(
+            symbol => 'USD'
+            chronicle_reader => $chronicle_r
+            );
 
 my $rates = $ir_data->rates;
 ```
  
 ##Quant::Framework::ImpliedRate
 
-ImA module to save/load implied interest rates for currencies.
+Implied interest rate is the interest rate for a currency which is implied from :
+* Forward price for the currency pair
+* Interest rate of the counter-party currency
 
-This module saves/loads implied interest rate data to/from Chronicle. 
+For example if we have Forward rate for EUR/USD and interest rate for USD, we can calculate implied interest rate for EUR, using the Spot-Forward price relationship.
+
+This module helps you save/load implied interest rates to/from a `Data::Chronicle` storage system. When creating an instance of this module you will need to specify combined symbol (The name of the currency for which you want to save/load implied interest rate and the currency from which you have implied this rates) and a hash-ref named rates. Rates is a hash-table where key is duration (period in days) and the corresponding value is the interest rate percentage paid after that duration.
 
 ```
-my $ir_data = Quant::Framework::ImpliedRate->new(symbol => 'USD-EUR',
-        rates => { 7 => 0.5, 30 => 1.2, 90 => 2.4 });
+my $ir_data = Quant::Framework::ImpliedRate->new(
+            symbol => 'USD-EUR',
+            rates => { 
+                        7 => 0.5, 
+                        30 => 1.2, 
+                        90 => 2.4 
+                     },
+            chronicle_writer => $chronicle_w
+            );
+            
 $ir_data->save;
 ```
 
 To read implied interest rates for a currency:
 
 ```
-my $ir_data = Quant::Framework::ImpliedRate->new(symbol => 'USD-EUR');
+my $ir_data = Quant::Framework::ImpliedRate->new(
+            symbol => 'USD-EUR',
+            chronicle_reader => $chronicle_r
+            );
 
 my $rates = $ir_data->rates;
 ``` 
