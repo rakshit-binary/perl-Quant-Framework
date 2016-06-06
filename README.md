@@ -3,6 +3,8 @@ A framework of objects upon which to build Financial Quantitative Analysis code
 
 This framework contains modules for different market data that will be needed to price a derivative contract. These market-data modules will need an instance of `Data::Chronicle::Reader` to read data from storage or `Data::Chronicle::Writer` to write data to storage.
 
+Also note that in all `Quant::Framework` modules you can pass a `for_date` parameter when creating the module to read historical information. In case no `for_date` is provided, modules will work with latest information.
+
 Below is a list of supported modules.
 
 ##Quant::Framework::CorporateAction
@@ -316,7 +318,37 @@ my $trading_days = $exchange->trading_days;
 
 ##Quant::Framework::Holiday
 
-A module to save/load market holidays
+This module stored information regarding holidays for exchanges or currencies. Each exchange around the world is closed at certain days through a year same holds for countries. Underlyings whose currency or exchange are closed cannot be traded. So we need these information to make a decision about whether or not offer an underlying.
+
+This module can be used to save/load holiday information and query whether a symbol has a holiday on a certain date.
+
+To save holidays:
+```
+my $holidays = Quant::Framework::Holiday->new(
+            #calendar is a hash-ref whose keys are epochs of the holiday and value is a list of holidays on that day.
+            #Each holiday in the list is represented using a hash-ref (key is name of the holiday and value is 
+            #    an array containing name of exchanges or currencies which are affected by that holiday).
+            calendar => {
+                1456790400 => [ 'Independence Movement Day' => [ 'KRX' ],
+                                'Independence Day' => ['KRW'] ],
+                1472428800 => [ 'Summer Bank Holiday' => [ 'LSE', 'ICE_LIFFE', 'GBP' ] ]
+            },
+            chronicle_writer => $chronicle_w,
+);
+
+$holidays->save;
+```
+
+To read holiday information and do queries:
+
+```
+my $holidays = Quant::Framework::Holiday->new(
+            chronicle_reader => $chronicle_r,
+            );
+my $calendar = $holidays->calendar;
+#this will return all holidays for USD
+my $holiday_info = Quant::Framework::Holiday::get_holidays_for($chronicle_r, 'USD');
+```
 
 ##Quant::Framework::PartialTrading
 
