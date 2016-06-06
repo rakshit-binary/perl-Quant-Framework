@@ -51,7 +51,7 @@ subtype 'qf_interest_rate_type', as Str, where {
 
 =head2 qf_cutoff_code
 
-A volatility surface cutoff code. Format follows Bloomberg naming conventions.
+A volatility surface cutoff time convention
 
 =cut
 

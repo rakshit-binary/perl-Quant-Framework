@@ -283,7 +283,7 @@ has default_volatility_duration => (
 
 =head2 default_volatility
 
-Default value for volatility in csae this underlying has a constant volatility.
+Default value for volatility in case this underlying has a constant volatility.
 
 =cut
 
