@@ -3,9 +3,9 @@ A framework of objects upon which to build Financial Quantitative Analysis code
 
 This framework contains modules for different market data that will be needed to price a derivative contract. These market-data modules will need an instance of `Data::Chronicle::Reader` to read data from storage or `Data::Chronicle::Writer` to write data to storage.
 
-Below is a list of supported modules.
+Currently below modules are defined:
 
-##Quant::Framework::CorporateAction
+- **Quant::Framework::CorporateAction**:
 Represents the corporate actions data of an underlying from database. 
 
 To read actions for a company:
@@ -29,123 +29,3 @@ my $corp = Quant::Framework::CorporateAction
                 }});
 $corp->save();
 ```
-##Quant::Framework::InterestRate
-
-A module to save/load interest rates for currencies.
-
-This module saves/loads interest rate data to/from Chronicle. 
-
-```
-my $ir_data = Quant::Framework::InterestRate->new(symbol => 'USD',
-        rates => { 7 => 0.5, 30 => 1.2, 90 => 2.4 });
-$ir_data->save;
-```
-
-To read interest rates for a currency:
-
-```
-my $ir_data = Quant::MarketData::InterestRate->new(symbol => 'USD');
-
-my $rates = $ir_data->rates;
-```
- 
-##Quant::Framework::ImpliedRate
-
-A module to save/load implied interest rates for currencies.
-
-This module saves/loads implied interest rate data to/from Chronicle. 
-
-```
-my $ir_data = Quant::Framework::ImpliedRate->new(symbol => 'USD-EUR',
-        rates => { 7 => 0.5, 30 => 1.2, 90 => 2.4 });
-$ir_data->save;
-```
-
-To read implied interest rates for a currency:
-
-```
-my $ir_data = Quant::Framework::ImpliedRate->new(symbol => 'USD-EUR');
-
-my $rates = $ir_data->rates;
-``` 
- 
-##Quant::Framework::Asset
-
-Assets have a symbol and rates. Example assets are currencies, indices, stocks
-and commodities.
-
-
-##Quant::Framework::Currency
-
-The representation of currency.
-
-```
-my $currency = Quant::Framework::Currency->new({ symbol => 'AUD'});
-```
-
-##Quant::Framework::CorrelationMatrix
-
-Correlations have an index, a currency, and duration that corresponds
-to a correlation. An example of a correlation is SPC, AUD, 1M, with
-a correlation of 0.42.
-
-##Quant::Framework::Dividend
-
-This module saves/loads dividends data to/from Chronicle. 
-To save dividends for a company:
-
-```
-my $corp_dividends = Quant::Framework::Dividends->new(symbol => $symbol,
-        rates => { 1 => 0, 2 => 1, 3=> 0.04 }
-        discrete_points => { '2015-04-24' => 0, '2015-09-09' => 0.134 });
-$corp_dividends->save;
-```
-
-To read dividends information for a company:
-
-```
-my $corp_dividends = Quant::Framework::Dividends->new(symbol => $symbol);
-
-my $rates = $corp_dividends->rates;
-my $disc_points = $corp_dividends->discrete_points;
-```
-
-##Quant::Framework::EconomicEventsCalendar
-
-Represents an economic event in the financial market
-
-```
-     my $eco = Quant::Framework::EconomicEventCalendar->new({
-        recorded_date => $dt,
-        events => $arr_events
-     });
-```
-
-##Quant::Framework::Exchange
-
-Quant::Framework::Exchange - A module to save/load exchange information
-
-##Quant::Framework::Holiday
-
-A module to save/load market holidays
-
-##Quant::Framework::PartialTrading
-
-Partial trading means times when an exchange is opened later than usual (late\_open) or closed earlier than usual (early\_close).
-
-##Quant::Framework::TradingCalendar
-
-This module is responsible for everything related to time-based status of an exchange (whether exchange is open/closed, has holiday, is partially open, ...)
-Plus all related helper modules (trading days between two days where exchange is open, trading breaks, DST effect, open/close time, ...).
-One important feature of this module is that it is designed for READING information not writing.
-
-```
-my $calendar = Quant::Framework::TradingCalendar->new('LSE');
-```
-
-##Quant::Framework::ExpiryConventions
-
-
-##Quant::Framework::VolSurface
-
-Base class for all volatility surfaces.
