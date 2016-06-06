@@ -151,23 +151,42 @@ a correlation of 0.42.
 
 ##Quant::Framework::Dividend
 
-This module saves/loads dividends data to/from Chronicle. 
-To save dividends for a company:
+Dividend is the capital gains for an underlying after a period of time. For more information please refer to [Dividend](https://en.wikipedia.org/wiki/Dividend).
+
+This module saves/loads dividends data to/from Chronicle and query dividend rates for a specific period of time. 
+
+To save dividends for an underlying:
 
 ```
-my $corp_dividends = Quant::Framework::Dividends->new(symbol => $symbol,
-        rates => { 1 => 0, 2 => 1, 3=> 0.04 }
-        discrete_points => { '2015-04-24' => 0, '2015-09-09' => 0.134 });
-$corp_dividends->save;
+my $dividends = Quant::Framework::Dividends->new(
+            symbol => $symbol,
+            rates => { 
+                        1 => 0, 
+                        2 => 1, 
+                        3 => 0.04 
+                     },
+            discrete_points => 
+                     { 
+                        '2015-04-24' => 0, 
+                        '2015-09-09' => 0.134 
+                     },
+            chronicle_writer => $chronicle_w
+            );
+$dividends->save;
 ```
 
-To read dividends information for a company:
+To read dividends information and query rates for an underlying:
 
 ```
-my $corp_dividends = Quant::Framework::Dividends->new(symbol => $symbol);
+my $dividends = Quant::Framework::Dividends->new(
+            symbol => $symbol,
+            chronicle_reader => $chronicle_r
+            );
 
-my $rates = $corp_dividends->rates;
-my $disc_points = $corp_dividends->discrete_points;
+my $rates = $dividends->rates;
+
+my $time_in_years = 0.5;
+my $sixmonth_rate = $dividends->rate_for($time_in_years);
 ```
 
 ##Quant::Framework::EconomicEventsCalendar
