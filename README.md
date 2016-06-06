@@ -77,7 +77,7 @@ and commodities.
 
 ##Quant::Framework::Currency
 
-The representation of currency within our system
+The representation of currency.
 
 ```
 my $currency = Quant::Framework::Currency->new({ symbol => 'AUD'});
@@ -88,8 +88,6 @@ my $currency = Quant::Framework::Currency->new({ symbol => 'AUD'});
 Correlations have an index, a currency, and duration that corresponds
 to a correlation. An example of a correlation is SPC, AUD, 1M, with
 a correlation of 0.42.
-The values can be updated through backoffice's Quant Market Data page.
-
 
 ##Quant::Framework::Dividend
 
@@ -137,7 +135,7 @@ Partial trading means times when an exchange is opened later than usual (late\_o
 
 ##Quant::Framework::TradingCalendar
 
-This module is responsible about everything related to time-based status of an exchange (whether exchange is open/closed, has holiday, is partially open, ...)
+This module is responsible for everything related to time-based status of an exchange (whether exchange is open/closed, has holiday, is partially open, ...)
 Plus all related helper modules (trading days between two days where exchange is open, trading breaks, DST effect, open/close time, ...).
 One important feature of this module is that it is designed for READING information not writing.
 
