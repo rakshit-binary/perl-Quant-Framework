@@ -401,7 +401,7 @@ my $is_closing_early = $calendar->closes_early_on(Date::Utility->new);
 
 ##Quant::Framework::ExpiryConventions
 
-This module is a helper for `CorrelationMatrix` to calculate expiry date for a volatility surface. After initializing this module with required inputs, you can invoke its `vol_expiry_date` and `forward_expiry_date` functions.
+This module is a helper for `CorrelationMatrix` to convert tenor from a volsurface to an actual date. After initializing this module with required inputs, you can invoke its `vol_expiry_date` and `forward_expiry_date` functions.
 
 To use this module:
 ```
