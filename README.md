@@ -413,6 +413,70 @@ my $is_closing_early = $calendar->closes_early_on(Date::Utility->new);
 
 ##Quant::Framework::VolSurface
 
+A Volatility Surface is a two dimensional matrix which represents variance in the price of an underlying for different time periods (rows of the matrix) and different maturities (columns of the matrix). These time periods are called tenor. There are two types of Volatility Surface: Delta (used for Foreign Exchange underlyings) and Moneyness (used for Stocks and Indices). Each row of a Volatility Surface is called Smile and can be represented as a curve on a 2-D plane where X axis is maturities and Y is volatility. For more information about Volatility Surface and Smile please refer to (Volatility smile)[https://en.wikipedia.org/wiki/Volatility_smile].
 
-This module represents a volatility surface.
-Base class for all volatility surfaces.
+This module is the parent of two other modules: `Quant::Framework::VolSurface::Delta` and `Quant::Framework::VolSurface::Moneyness`. You can store, fetch and query a Volatility Surface using these modules. You can store different surfaces in a single `Delta` or `Moneyness` instance based on different cutoff times.
+
+To work with these modules you have to first initialize an instance of `Quant::Framework::Utils::UnderlyingConfig`. This module is used to store basic information for an underlying (symbol name, volatility surface type, exchange name, asset symbol name, etc.). For more information about attributes of this module please refer to POD documentation for this module.
+
+To save a volatility surface:
+```
+#note that to create a Moneyness surface, you will also need to provide a spot_reference parameter which 
+#denoted the spot price reference using which maturities are calcualted.
+my $surface = Quant::Framework::VolSurface::Delta->new(
+            underlying_config => $eurusd_underlying_config,
+            surface => { 'New York 10:00' => 
+                            {
+                                1 => {
+                                    tenor => 'ON',
+                                    vol_spread => {
+                                        25 => 0.04,
+                                        50 => 0.029,
+                                        75 => 0.042
+                                    },
+                                    smile => {
+                                        25 => 0.11,
+                                        50 => 0.113,
+                                        75 => 0.116
+                                    }
+                                },
+                                7 => {
+                                    tenor => '1W',
+                                    vol_spread => {
+                                        25 => 0.05,
+                                        50 => 0.039,
+                                        75 => 0.048
+                                    },
+                                    smile => {
+                                        25 => 0.12,
+                                        50 => 0.123,
+                                        75 => 0.126
+                                    }
+                                }
+                            }
+                        },
+            chronicle_writer => $chronicle_w
+);
+$surface->save;
+```
+
+To fetch and query a volatility surface:
+
+```
+my $surface = Quant::Framework::VolSurface::Delta->new(
+    underlying_config => $eurusd_underlying_config,
+    cutoff => 'New York 10:00',
+    chronicle_reader => $chronicle_r
+);
+
+#fetch value of Volatility Smile for 7-days tenor and 25 delta
+my $vol = $surface->get_volatility(
+    {
+        delta => 25, 
+        days => 7
+    });
+
+#generate a new surface based on the current one, using a different cutoff time
+my $utc21_surface = $surface->generate_surface_for_cutoff('UTC 21:00');
+
+```
