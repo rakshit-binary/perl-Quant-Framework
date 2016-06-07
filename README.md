@@ -352,16 +352,60 @@ my $holiday_info = Quant::Framework::Holiday::get_holidays_for($chronicle_r, 'US
 
 ##Quant::Framework::PartialTrading
 
-Partial trading means times when an exchange is opened later than usual (late\_open) or closed earlier than usual (early\_close).
+Partial trading means times when an exchange is opened later than usual (late open) or closed earlier than usual (early close). This modules lets you save information about partial trading calendar or query partial trading calendar for a specific exchange.
+
+To save partial trading data:
+```
+my $partial_trading = Quant::Framework::PartialTrading->new(
+            type => 'late_opens',  #this can be either 'late_opens' or 'early_closes'
+            #calendar is a hash-ref where keys are epoch denoting the day for partial-trading
+            #value is a hash-ref too where key is late opening time (in this case) and value is array
+            #of affected exchanges. For opening time of 2h30m means exchange will be opened later 
+            #than usual at 2:30 GMT.
+            calendar => {
+                        1293148800 => { 2h30m => [ 'HKSE' ] },
+                        1388620800 => { 1h => [ 'EURONEXT' ] },
+            },
+            chronicle_writer => $chronicle_w
+);
+
+$partial_trading->save();
+```
+
+To query partial trading information:
+
+```
+my $partial_trading = Quant::Framework::PartialTrading->new(
+            type => 'early_closes',
+            chronicle_reader => $chronicle_r,
+);
+
+my $calendar = $partial_trading->get_partial_trading_for('HKSE');
+
+#here we query early closing time for HKSE exchange at 3rd of Jan 2016. 
+#$early_close_time will have same format as to when we store data (2h30m representing 02:30 GMT)
+my $early_close_time = $calendar->{Date::Utility->new('2016-01-03')->epoch};
+```
 
 ##Quant::Framework::TradingCalendar
 
 This module is responsible for everything related to time-based status of an exchange (whether exchange is open/closed, has holiday, is partially open, ...)
 Plus all related helper modules (trading days between two days where exchange is open, trading breaks, DST effect, open/close time, ...).
-One important feature of this module is that it is designed for READING information not writing.
+One important feature of this module is that it is designed for reading information not writing. It relies on the data which is already saved by `Quant::Framework::Holiday` and `Quant::Framework::PartialTrading`.
+
+You can query different time-based information using this module. Below is an example. For more information refer to POD documentation of the module.
 
 ```
-my $calendar = Quant::Framework::TradingCalendar->new('LSE');
+my $calendar = Quant::Framework::TradingCalendar->new(
+            'LSE',
+            $chronicle_r,
+);
+
+my $is_traded = $calendar->trades_on(Date::Utility->new('2015-09-29'));
+my $is_in_break = $calendar->is_in_trading_break(Date::Utility->new('2016-03-09 12:20')->epoch);
+
+#does the exchnage close early today?
+my $is_closing_early = $calendar->closes_early_on(Date::Utility->new);
 ```
 
 ##Quant::Framework::ExpiryConventions
@@ -369,4 +413,6 @@ my $calendar = Quant::Framework::TradingCalendar->new('LSE');
 
 ##Quant::Framework::VolSurface
 
+
+This module represents a volatility surface.
 Base class for all volatility surfaces.
