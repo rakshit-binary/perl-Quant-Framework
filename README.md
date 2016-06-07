@@ -410,6 +410,29 @@ my $is_closing_early = $calendar->closes_early_on(Date::Utility->new);
 
 ##Quant::Framework::ExpiryConventions
 
+This module is a helper for `CorrelationMatrix` to calculate expiry date for a volatility surface. After initializing this module with required inputs, you can invoke its `vol_expiry_date` and `forward_expiry_date` functions.
+
+To use this module:
+```
+my $expiry_conventions = Quant::Framework::ExpiryConventions->new(
+    chronicle_reader => $chronicle_r,
+    is_forex_market  => 1,
+    symbol           => 'frxEURUSD',
+    asset            => $asset,
+    quoted_currency  => $quoted_currency,
+    asset_symbol     => 'EUR',
+    calendar         => $trading_calendar);
+    
+my $expiry_date = $expiry_conventions->vol_expiry_date({
+    from => Date::Utility->new,
+    term => '1W'
+);
+
+my $expiry_date2 = $expiry_conventions->forward_expiry_date({
+    from => $date,
+    term => '1W'
+});
+```
 
 ##Quant::Framework::VolSurface
 
