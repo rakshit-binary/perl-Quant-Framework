@@ -18,6 +18,8 @@ my $actions = $corp->actions;
 ```
 To save actions for a company:
 ```
+#when creating an instance of this module, actions is a hash-ref where key is action identifier (some unique identifier),
+and value is a hash-ref containing information about the corporate action.
 my $corp = Quant::Framework::CorporateAction
         ->new(symbol => $symbol, 
             chronicle_writer => $writer,
@@ -33,14 +35,15 @@ $corp->save();
 ```
 ##Quant::Framework::InterestRate
 
-Interest rate is the amount of interest paid for deposit money. This can be defined for different periods and different currencies. So we can have different interest rates for each combination of currency and period. Usually interest rates are described as a percentage. For example a 1% interest rate for a period of 1 year for USD currency means you will get 1.01 times your initial deposit money after one years. For more informatio please refer to [Interest rate](https://en.wikipedia.org/wiki/Interest_rate).
+Interest rate is the amount of interest paid for deposit money. This can be defined for different periods and different currencies. So we can have different interest rates for each combination of currency and period. Usually interest rates are described as a percentage. For example a 1% interest rate for a period of 1 year for USD currency means you will get 1.01 times your initial deposit money after one year. For more informatio please refer to [Interest rate](https://en.wikipedia.org/wiki/Interest_rate).
 
-This module helps you save/load interest rates to/from a `Data::Chronicle` storage system. When creating an instance of this module you will need to specify symbol (The name of the currency for which you want to save/load interest rate) and a hash-ref named rates. Rates is a hash-table where key is duration (period in days) and the corresponding value is the interest rate percentage paid after that duration.
+This module helps you save/load interest rates to/from a `Data::Chronicle` storage system. When creating an instance of this module you will need to specify symbol (The name of the currency for which you want to save/load interest rate) and a hash-ref named rates. Rates is a hash-table where key is duration (period in days) and the corresponding value is the interest rate percentage paid for that duration.
 
 To save interest rates:
 
 ```
-#Here USD is the currency, "7, 30 and 90" are durations and corresponding values "0.5, 1.2 and 2.4" are interest rates
+#Here USD is the currency, "7, 30 and 90" are durations and 
+#corresponding values "0.5, 1.2 and 2.4" are interest rates
 
 my $ir_data = Quant::Framework::InterestRate->new(
             symbol => 'USD',
@@ -49,8 +52,7 @@ my $ir_data = Quant::Framework::InterestRate->new(
                         30 => 1.2, 
                         90 => 2.4 
                      },
-            chronicle_writer => $chronicle_w
-            );
+            chronicle_writer => $chronicle_w);
             
 $ir_data->save;
 ```
@@ -60,8 +62,7 @@ To load interest rates for a currency:
 ```
 my $ir_data = Quant::MarketData::InterestRate->new(
             symbol => 'USD'
-            chronicle_reader => $chronicle_r
-            );
+            chronicle_reader => $chronicle_r);
 
 my $rates = $ir_data->rates;
 ```
@@ -84,8 +85,7 @@ my $ir_data = Quant::Framework::ImpliedRate->new(
                         30 => 1.2, 
                         90 => 2.4 
                      },
-            chronicle_writer => $chronicle_w
-            );
+            chronicle_writer => $chronicle_w);
             
 $ir_data->save;
 ```
@@ -95,15 +95,14 @@ To read implied interest rates for a currency:
 ```
 my $ir_data = Quant::Framework::ImpliedRate->new(
             symbol => 'USD-EUR',
-            chronicle_reader => $chronicle_r
-            );
+            chronicle_reader => $chronicle_r);
 
 my $rates = $ir_data->rates;
 ``` 
  
 ##Quant::Framework::Asset
 
-An asset is anything which has value and can be bought and sold. For example in a forex currency pair (EUR/USD) you will be paying/receiving USD when you buy/sell EUR. So here EUR is the asset. Also for indices or stocks you will be paying domestic currency to buy units of index or stock. So Index or Stock are assets.
+An asset is anything which has value and can be bought and sold. For example in a forex currency pair (EUR/USD) you will be paying/receiving USD when you buy/sell EUR. So here EUR is the asset. Also for indices or stocks you will be paying domestic currency to buy units of index or stock. So Index or Stock are assets too.
 
 This module can be used to read dividend rates for an asset. You will need to pass symbol name when instantiating the module.
 
@@ -112,10 +111,10 @@ To instantiate an asset module and read dividend rates:
 ```
 my $asset = Quant::Framework::Asset->new(
             symbol => 'AEX',
-            chronicle_reader => $chronicle_r
-            );
+            chronicle_reader => $chronicle_r);
             
-#here $time_in_years is the duration for which we need to get dividend rates.
+#here $time_in_years is the duration for which we want to get dividend rates.
+my $time_in_years = 0.5;
 my $rates = $asset->rate_for($time_in_years);
 ```
 
@@ -128,8 +127,7 @@ Below example shows how to create instances of this module and query information
 ```
 my $currency = Quant::Framework::Currency->new(
             symbol => 'AUD',
-            chronicle_reader => $chronicle_r
-);
+            chronicle_reader => $chronicle_r);
 
 #here $time_in_years is the duration for which we need to get dividend rates.
 my $rates = $currency->rate_for($time_in_years);
@@ -157,8 +155,7 @@ To save a correlation matrix:
 ```
 my $matrix = Quant::Framework::CorrelationMatrix->new(
             symbol => 'indices',
-            chronicle_writer => $chronicle_w
-            );
+            chronicle_writer => $chronicle_w);
             
 #Input data for correlation matrix should be initialized like this:
 my $data = ();
@@ -177,8 +174,7 @@ To load correlation matrix and query information:
 ```
 my $matrix = Quant::Framework::CorrelationMatrix->new(
             symbol => 'indices',
-            chronicle_reader => $chronicle_r
-            );
+            chronicle_reader => $chronicle_r);
             
 my $time_in_years = 0.5;
 
@@ -209,8 +205,7 @@ my $dividends = Quant::Framework::Dividends->new(
                         '2015-04-24' => 0, 
                         '2015-09-09' => 0.134 
                      },
-            chronicle_writer => $chronicle_w
-            );
+            chronicle_writer => $chronicle_w);
 $dividends->save;
 ```
 
@@ -219,8 +214,7 @@ To read dividends information and query rates for an underlying:
 ```
 my $dividends = Quant::Framework::Dividends->new(
             symbol => $symbol,
-            chronicle_reader => $chronicle_r
-            );
+            chronicle_reader => $chronicle_r);
 
 my $rates = $dividends->rates;
 
@@ -230,8 +224,8 @@ my $sixmonth_rate = $dividends->rate_for($time_in_years);
 
 ##Quant::Framework::EconomicEventsCalendar
 
-Represents a calendar of important economic announcement made by central banks (e.g. Unemployment Rate or CPI).
-An instance of this module will contain all economic announcement for all underlyings.
+Represents a calendar of important economic announcement made by central banks (e.g. Unemployment Rate or CPI) or other major player in the financial markets.
+An instance of this module will contain all current economic announcement for all underlyings.
 
 To save economic events:
 
@@ -282,10 +276,9 @@ my @events = @{$calendar->events};
 my $first_event = $events[0];
 
 #here we fetch all economic events whose release_date lies inside the given time period
-my $events = $calendar->get_latest_events_for_period(
+my $events = $calendar->get_latest_events_for_period({
             from => Date::Utility->new('2015-01-10'),
-            to => Date::Utility->new('2015-01-20')
-);
+            to => Date::Utility->new('2015-01-20')});
 
 #get a list of tentative economic events
 my $tentatives = $calendar->get_tentative_events;
@@ -294,11 +287,12 @@ my $tentatives = $calendar->get_tentative_events;
 
 ##Quant::Framework::Exchange
 
-Each underlying can only be traded in a specific exchange. As a result of this, some properties of the exchange (e.g. Openning or closing time or holidays) will affect when/how an underlying is being traded.
+Each underlying can only be traded in a specific exchange. As a result of this, some properties of the exchange (e.g. opening or closing time or holidays) will affect when/how an underlying is being traded.
 
 This module represents basic information about an exchange. More specific information about an exchange (including open/close times) can be get using `TradingCalendar` module. The information you get from this module are stored in the `exchange.yml` file stored in `share` directory of this repository.
 
-To read an exchange information:
+To read information about an exchange:
+
 ```
 my $exchange = Quant::Framework::Exchange->new(
             symbol => 'NASDAQ',
@@ -311,7 +305,7 @@ my $timezone = $exchange->trading_timezone;
 #value of trading_days can be:
 # everyday -> 7 days a week
 # weekdays -> 5 week-days of week (excluding weekends)
-#sun_thru_thu -> from Sunday to Thursday
+# sun_thru_thu -> from Sunday to Thursday
 my $trading_days = $exchange->trading_days;
 
 ```
@@ -330,7 +324,7 @@ my $holidays = Quant::Framework::Holiday->new(
             #    an array containing name of exchanges or currencies which are affected by that holiday).
             calendar => {
                 1456790400 => [ 'Independence Movement Day' => [ 'KRX' ],
-                                'Independence Day' => ['KRW'] ],
+                              [ 'Independence Day' => ['KRW'] ],
                 1472428800 => [ 'Summer Bank Holiday' => [ 'LSE', 'ICE_LIFFE', 'GBP' ] ]
             },
             chronicle_writer => $chronicle_w,
@@ -343,8 +337,8 @@ To read holiday information and do queries:
 
 ```
 my $holidays = Quant::Framework::Holiday->new(
-            chronicle_reader => $chronicle_r,
-            );
+            chronicle_reader => $chronicle_r);
+            
 my $calendar = $holidays->calendar;
 #this will return all holidays for USD
 my $holiday_info = Quant::Framework::Holiday::get_holidays_for($chronicle_r, 'USD');
@@ -366,8 +360,7 @@ my $partial_trading = Quant::Framework::PartialTrading->new(
                         1293148800 => { 2h30m => [ 'HKSE' ] },
                         1388620800 => { 1h => [ 'EURONEXT' ] },
             },
-            chronicle_writer => $chronicle_w
-);
+            chronicle_writer => $chronicle_w);
 
 $partial_trading->save();
 ```
@@ -377,8 +370,7 @@ To query partial trading information:
 ```
 my $partial_trading = Quant::Framework::PartialTrading->new(
             type => 'early_closes',
-            chronicle_reader => $chronicle_r,
-);
+            chronicle_reader => $chronicle_r);
 
 my $calendar = $partial_trading->get_partial_trading_for('HKSE');
 
@@ -398,8 +390,7 @@ You can query different time-based information using this module. Below is an ex
 ```
 my $calendar = Quant::Framework::TradingCalendar->new(
             'LSE',
-            $chronicle_r,
-);
+            $chronicle_r);
 
 my $is_traded = $calendar->trades_on(Date::Utility->new('2015-09-29'));
 my $is_in_break = $calendar->is_in_trading_break(Date::Utility->new('2016-03-09 12:20')->epoch);
